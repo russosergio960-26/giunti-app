@@ -739,9 +739,9 @@
                                 <button class="btn-ar" onclick="event.stopPropagation(); caAddRow('ca_${cardId}')">+ Aggiungi cavo</button>
                             </div>
                             <div class="se-row">
-                                <div class="se-label">📡 Tag NFC</div>
+                                <div class="se-label">🏷️ Tag / Barcode</div>
                                 <div id="nfc_${cardId}">
-                                    <button class="btn-nfc" onclick="event.stopPropagation(); leggiNFC('${cardId}')">📡 Leggi Tag NFC</button>
+                                    <button class="btn-nfc" onclick="event.stopPropagation(); scanBarcode('${cardId}')">📷 Scansiona Barcode</button>
                                     <div class="nfc-result" id="nfcres_${cardId}">${sv.nfc ? '<div class=\'nfc-tag-saved\'>✅ Tag salvato: <b>' + sv.nfc + '</b></div>' : ''}</div>
                                 </div>
                             </div>
@@ -1040,95 +1040,96 @@
             if (ok) { ok.style.display = 'block'; setTimeout(function() { ok.style.display = 'none'; }, 2500); }
         }
 
-        // ── NFC ────────────────────────────────────────────────
-        var _nfcAbort = null;
+        // ── BARCODE SCANNER ────────────────────────────────────
+        var _scanStream = null;
 
-        function leggiNFC(cardId) {
+        function scanBarcode(cardId) {
             var btn = document.querySelector('#nfc_' + cardId + ' .btn-nfc');
             var res = document.getElementById('nfcres_' + cardId);
 
-            if (!('NDEFReader' in window)) {
-                res.innerHTML = '<div class="nfc-waiting">⚠️ NFC non supportato.<br>Usa Chrome su Android con HTTPS.</div>';
+            // Se già attivo, ferma
+            if (_scanStream) {
+                stopScan(cardId);
                 return;
             }
 
-            // Se già in ascolto, ferma
-            if (_nfcAbort) {
-                _nfcAbort.abort();
-                _nfcAbort = null;
-                btn.textContent = '📡 Leggi Tag NFC';
-                btn.classList.remove('attivo');
+            // Controlla supporto BarcodeDetector
+            if (!('BarcodeDetector' in window)) {
+                // Fallback: input manuale o file immagine
+                res.innerHTML = '<div class="nfc-waiting">⚠️ Scanner non supportato su questo browser.<br>'
+                    + 'Inserisci il codice manualmente:</div>'
+                    + '<div style="display:flex;gap:6px;margin-top:6px;">'
+                    + '<input id="manual_' + cardId + '" type="text" placeholder="es. 04F78B6AF31E90" '
+                    + 'style="flex:1;padding:8px;border:1.5px solid #e2e6f0;border-radius:8px;font-size:12px;outline:none;">'
+                    + '<button onclick="event.stopPropagation(); salvaManuale(\'' + cardId + '\')" '
+                    + 'style="padding:8px 12px;background:#667eea;color:white;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;">💾</button>'
+                    + '</div>';
                 return;
             }
 
-            btn.textContent = '⏹ Ferma lettura...';
+            // Avvia fotocamera
+            btn.textContent = '⏹ Ferma scansione';
             btn.classList.add('attivo');
-            res.innerHTML = '<div class="nfc-waiting">📡 Avvicina il telefono al tag NFC...</div>';
+            res.innerHTML = '<video id="scan_video_' + cardId + '" style="width:100%;border-radius:10px;margin-top:6px;" autoplay playsinline></video>'
+                + '<div class="nfc-waiting" id="scan_status_' + cardId + '">📷 Inquadra il barcode...</div>';
 
-            var controller = new AbortController();
-            _nfcAbort = controller;
+            navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
+            .then(function(stream) {
+                _scanStream = stream;
+                var video = document.getElementById('scan_video_' + cardId);
+                video.srcObject = stream;
+                video.play();
 
-            var ndef = new NDEFReader();
-            ndef.scan({ signal: controller.signal }).then(function() {
+                var detector = new BarcodeDetector({ formats: ['code_128','code_39','ean_13','ean_8','qr_code','data_matrix'] });
 
-                ndef.onreading = function(event) {
-                    // Prendo il serialNumber (UID del tag fisico)
-                    var serialId = event.serialNumber ? event.serialNumber.toUpperCase() : '';
-
-                    // Provo anche a leggere record NDEF se presenti
-                    var testi = [];
-                    if (event.message && event.message.records) {
-                        for (var i = 0; i < event.message.records.length; i++) {
-                            var rec = event.message.records[i];
-                            try {
-                                if (rec.recordType === 'text' || rec.recordType === 'url') {
-                                    var dec = new TextDecoder(rec.encoding || 'utf-8');
-                                    testi.push(dec.decode(rec.data));
-                                }
-                            } catch(e) {}
+                var scanInterval = setInterval(function() {
+                    if (!_scanStream) { clearInterval(scanInterval); return; }
+                    detector.detect(video).then(function(barcodes) {
+                        if (barcodes.length > 0) {
+                            clearInterval(scanInterval);
+                            var codice = barcodes[0].rawValue;
+                            stopScan(cardId);
+                            // Salva risultato
+                            window['nfc_pending_' + cardId] = codice;
+                            res.innerHTML = '<div class="nfc-tag-new">🏷️ <b>Codice letto:</b> ' + codice + '</div>'
+                                + '<button onclick="event.stopPropagation(); seSalvaConNFC(\'' + cardId + '\')" '
+                                + 'style="width:100%;margin-top:6px;padding:8px;background:#2e7d32;color:white;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;">'
+                                + '💾 Salva nella scheda</button>';
                         }
-                    }
-
-                    // Usa serial come ID principale + testo se presente
-                    var contenuto = serialId || 'TAG-SCONOSCIUTO';
-                    if (testi.length > 0) contenuto += ' | ' + testi.join(' | ');
-
-                    // Salva subito in window per il successivo salvaScheda
-                    window['nfc_pending_' + cardId] = contenuto;
-
-                    // Mostra risultato con tasto salva rapido
-                    res.innerHTML = '<div class="nfc-tag-new">'
-                        + '🏷️ <b>UID:</b> ' + serialId
-                        + (testi.length > 0 ? '<br><b>Testo:</b> ' + testi.join(' | ') : '')
-                        + '</div>'
-                        + '<button onclick="event.stopPropagation(); seSalvaConNFC(\'' + cardId + '\')" '
-                        + 'style="width:100%;margin-top:6px;padding:8px;background:#2e7d32;color:white;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;">'
-                        + '💾 Salva tag nella scheda</button>';
-
-                    // Ferma lettura
-                    controller.abort();
-                    _nfcAbort = null;
-                    btn.textContent = '📡 Leggi altro Tag';
-                    btn.classList.remove('attivo');
-                };
-
-                ndef.onreadingerror = function() {
-                    res.innerHTML = '<div class="nfc-waiting">❌ Errore lettura tag.</div>';
-                    btn.textContent = '📡 Leggi Tag NFC';
-                    btn.classList.remove('attivo');
-                    _nfcAbort = null;
-                };
-
-            }).catch(function(err) {
-                res.innerHTML = '<div class="nfc-waiting">❌ ' + err.message + '</div>';
-                btn.textContent = '📡 Leggi Tag NFC';
+                    }).catch(function() {});
+                }, 300);
+            })
+            .catch(function(err) {
+                res.innerHTML = '<div class="nfc-waiting">❌ Fotocamera non accessibile: ' + err.message + '</div>';
+                btn.textContent = '📷 Scansiona Barcode';
                 btn.classList.remove('attivo');
-                _nfcAbort = null;
             });
         }
 
+        function stopScan(cardId) {
+            if (_scanStream) {
+                _scanStream.getTracks().forEach(function(t) { t.stop(); });
+                _scanStream = null;
+            }
+            var btn = document.querySelector('#nfc_' + cardId + ' .btn-nfc');
+            if (btn) { btn.textContent = '📷 Scansiona Barcode'; btn.classList.remove('attivo'); }
+            var video = document.getElementById('scan_video_' + cardId);
+            if (video) video.remove();
+        }
+
+        function salvaManuale(cardId) {
+            var inp = document.getElementById('manual_' + cardId);
+            if (!inp || !inp.value.trim()) return;
+            var codice = inp.value.trim().toUpperCase();
+            window['nfc_pending_' + cardId] = codice;
+            var res = document.getElementById('nfcres_' + cardId);
+            res.innerHTML = '<div class="nfc-tag-new">🏷️ <b>Codice:</b> ' + codice + '</div>'
+                + '<button onclick="event.stopPropagation(); seSalvaConNFC(\'' + cardId + '\')" '
+                + 'style="width:100%;margin-top:6px;padding:8px;background:#2e7d32;color:white;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;">'
+                + '💾 Salva nella scheda</button>';
+        }
+
         function seSalvaConNFC(cardId) {
-            // Recupero la chiave dal DOM - cerco il btn-sv nella stessa scheda
             var scheda = document.getElementById(cardId);
             if (!scheda) return;
             var btnSv = scheda.querySelector('.btn-sv');
