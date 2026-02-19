@@ -344,16 +344,17 @@
         }
         .se-select:focus, .se-textarea:focus { border-color: #667eea; background: #fff; }
         .se-textarea { min-height: 60px; resize: vertical; }
-        .ctbl { width:100%; border-collapse:collapse; font-size:11px; table-layout:fixed; }
-        .ctbl th { background:#e8eeff; padding:6px 3px; text-align:center; font-size:10px; font-weight:700; color:#667eea; border-bottom:2px solid #c5cae9; word-break:break-word; }
-        .ctbl td { padding:4px 2px; border-bottom:1px solid #e2e6f0; vertical-align:middle; text-align:center; }
-        .ctbl td input { width:100%; border:1px solid #e2e6f0; border-radius:5px; padding:4px 3px; font-size:11px; background:#f5f6f8; outline:none; box-sizing:border-box; min-width:0; text-align:center; }
+        .ctbl { width:100%; border-collapse:collapse; font-size:10px; table-layout:fixed; overflow-x:auto; }
+        .ctbl th { background:#e8eeff; padding:5px 2px; text-align:center; font-size:9px; font-weight:700; color:#667eea; border-bottom:2px solid #c5cae9; word-break:break-word; }
+        .ctbl td { padding:3px 1px; border-bottom:1px solid #e2e6f0; vertical-align:middle; text-align:center; font-size:10px; }
+        .ctbl td input { width:100%; border:1px solid #e2e6f0; border-radius:4px; padding:3px 2px; font-size:10px; background:#f5f6f8; outline:none; box-sizing:border-box; min-width:0; text-align:center; }
         .ctbl td input:focus { border-color:#667eea; background:#fff; }
-        .ctbl th:nth-child(1),.ctbl td:nth-child(1) { width:30%; text-align:center; }
-        .ctbl th:nth-child(2),.ctbl td:nth-child(2) { width:17%; text-align:center; }
-        .ctbl th:nth-child(3),.ctbl td:nth-child(3) { width:17%; text-align:center; }
-        .ctbl th:nth-child(4),.ctbl td:nth-child(4) { width:30%; text-align:center; }
-        .ctbl th:nth-child(5),.ctbl td:nth-child(5) { width:6%; text-align:center; }
+        .ctbl th:nth-child(1),.ctbl td:nth-child(1) { width:25%; text-align:center; }
+        .ctbl th:nth-child(2),.ctbl td:nth-child(2) { width:10%; text-align:center; }
+        .ctbl th:nth-child(3),.ctbl td:nth-child(3) { width:10%; text-align:center; }
+        .ctbl th:nth-child(4),.ctbl td:nth-child(4) { width:25%; text-align:center; }
+        .ctbl th:nth-child(5),.ctbl td:nth-child(5) { width:15%; text-align:center; }
+        .ctbl th:nth-child(6),.ctbl td:nth-child(6) { width:15%; text-align:center; }
         .btn-dr { background: #ffebee; color: #c62828; border: none; border-radius: 5px; width: 22px; height: 22px; cursor: pointer; font-size: 12px; }
         .btn-ar { width: 100%; padding: 6px; background: #f5f6f8; border: 1.5px dashed #b0bec5; border-radius: 7px; color: #667eea; font-size: 11px; font-weight: 700; cursor: pointer; margin-top: 4px; }
         .fgrid { display: grid; grid-template-columns: repeat(3,1fr); gap: 6px; margin-bottom: 6px; }
@@ -718,19 +719,36 @@
                             <div class="se-row">
                                 <div class="se-label">📥 Report Fibre</div>
                                 <div class="excel-btns">
-                                    <button class="btn-xlsx-imp" onclick="event.stopPropagation(); document.getElementById('xl_${cardId}').click()">📥 Importa report fibre</button>
+                                    <button class="btn-xlsx-imp" onclick="event.stopPropagation(); document.getElementById('xl_${cardId}').click()" style="flex:1">📁 File locale</button>
+                                    <button class="btn-xlsx-imp" onclick="event.stopPropagation(); importaDaDrive('cv_${cardId}','${cardId}')" style="flex:1">☁️ Da Drive</button>
                                     <input type="file" id="xl_${cardId}" accept=".xlsx,.xls" style="display:none" onchange="xlsxImporta(event,'cv_${cardId}')">
                                 </div>
+                                <div style="display:flex; align-items:center; gap:6px; margin-bottom:6px;">
+                                    <input type="text" id="drivelink_cv_${cardId}" placeholder="🔗 Link Google Drive (opzionale)" value="${sv.driveLinkCV||''}" onclick="event.stopPropagation()"
+                                        style="flex:1; padding:7px 10px; border:1.5px solid #c5cae9; border-radius:20px; font-size:11px; outline:none; background:#f5f6f8;">
+                                </div>
+                                <div style="display:flex; align-items:center; gap:6px; margin-bottom:6px;">
+                                    <input type="text" id="filt_${cardId}" placeholder="🔍 Filtra per cavo..." onclick="event.stopPropagation()"
+                                        oninput="filtraCavi('cv_${cardId}', this.value)"
+                                        style="flex:1; padding:7px 10px; border:1.5px solid #c5cae9; border-radius:20px; font-size:12px; outline:none; background:#f5f6f8;">
+                                    <button onclick="event.stopPropagation(); document.getElementById('filt_${cardId}').value=''; filtraCavi('cv_${cardId}','')"
+                                        style="padding:6px 10px; background:#f5f6f8; border:1.5px solid #e2e6f0; border-radius:20px; font-size:12px; cursor:pointer; color:#888;">✕</button>
+                                </div>
                                 <table class="ctbl" id="tbl_${cardId}" style="${caviRows ? '' : 'display:none'}">
-                                    <thead><tr><th>Cavo</th><th>Fibra</th><th>Fibra</th><th>Cavo</th><th></th></tr></thead>
+                                    <thead><tr><th>Cavo</th><th>Fibre</th><th>Fibra</th><th>Cavo</th><th>Stato</th><th>Data</th></tr></thead>
                                     <tbody id="cv_${cardId}">${caviRows}</tbody>
                                 </table>
                             </div>
                             <div class="se-row">
                                 <div class="se-label">🔌 Cavi Attestati</div>
                                 <div class="excel-btns">
-                                    <button class="btn-xlsx-imp" onclick="event.stopPropagation(); document.getElementById('ca_xl_${cardId}').click()">📥 Importa cavi attestati</button>
+                                    <button class="btn-xlsx-imp" onclick="event.stopPropagation(); document.getElementById('ca_xl_${cardId}').click()" style="flex:1">📁 File locale</button>
+                                    <button class="btn-xlsx-imp" onclick="event.stopPropagation(); importaDaDrive('ca_${cardId}','${cardId}')" style="flex:1">☁️ Da Drive</button>
                                     <input type="file" id="ca_xl_${cardId}" accept=".xlsx,.xls" style="display:none" onchange="caXlsxImporta(event,'ca_${cardId}')">
+                                </div>
+                                <div style="display:flex; align-items:center; gap:6px; margin-bottom:6px;">
+                                    <input type="text" id="drivelink_ca_${cardId}" placeholder="🔗 Link Google Drive (opzionale)" value="${sv.driveLinkCA||''}" onclick="event.stopPropagation()"
+                                        style="flex:1; padding:7px 10px; border:1.5px solid #c5cae9; border-radius:20px; font-size:11px; outline:none; background:#f5f6f8;">
                                 </div>
                                 <table class="ctbl" id="ca_tbl_${cardId}" style="${caviAttRows ? '' : 'display:none'}">
                                     <thead><tr><th>ID</th><th>Nome Cavo</th><th>Potenzialità</th><th></th></tr></thead>
@@ -738,13 +756,7 @@
                                 </table>
                                 <button class="btn-ar" onclick="event.stopPropagation(); caAddRow('ca_${cardId}')">+ Aggiungi cavo</button>
                             </div>
-                            <div class="se-row">
-                                <div class="se-label">🏷️ Tag / Barcode</div>
-                                <div id="nfc_${cardId}">
-                                    <button class="btn-nfc" onclick="event.stopPropagation(); scanBarcode('${cardId}')">📷 Scansiona Barcode</button>
-                                    <div class="nfc-result" id="nfcres_${cardId}">${sv.nfc ? '<div class=\'nfc-tag-saved\'>✅ Tag salvato: <b>' + sv.nfc + '</b></div>' : ''}</div>
-                                </div>
-                            </div>
+                            <div class="se-row">               </div>
                             <div class="se-row">
                                 <div class="se-label">📝 Note Operative</div>
                                 <textarea class="se-textarea" id="nt_${cardId}" placeholder="Note tecniche, osservazioni...">${sv.note||''}</textarea>
@@ -757,7 +769,7 @@
                                     onchange="seAddFoto(event,'fg_${cardId}')">
                             </div>
                             <div class="se-actions">
-                                <button class="btn-sv" onclick="event.stopPropagation(); seSalva('${cardId}','${k}')">💾 Salva</button>
+                                <button class="btn-sv" onclick="event.stopPropagation(); seSalva('${cardId}','${k}')">💾 Salva dati</button>
                             </div>
                             <div class="sv-ok" id="ok_${cardId}">✅ Dati salvati!</div>
                         </div>
@@ -1028,12 +1040,14 @@
                 }
             });
             var dati = {
-                stato:   (document.getElementById('st_' + cardId) || {}).value || '',
-                cavi:    cavi,
-                caviAtt: caviAtt,
-                nfc:     window['nfc_pending_' + cardId] || (JSON.parse(localStorage.getItem(k)||'{}')).nfc || '',
-                note:    (document.getElementById('nt_' + cardId) || {}).value || '',
-                foto:    Array.from(document.querySelectorAll('#fg_' + cardId + ' img')).map(function(i) { return i.src; })
+                stato:      (document.getElementById('st_' + cardId) || {}).value || '',
+                cavi:       cavi,
+                caviAtt:    caviAtt,
+                driveLinkCV: (document.getElementById('drivelink_cv_' + cardId) || {}).value || '',
+                driveLinkCA: (document.getElementById('drivelink_ca_' + cardId) || {}).value || '',
+                nfc:        window['nfc_pending_' + cardId] || (JSON.parse(localStorage.getItem(k)||'{}')).nfc || '',
+                note:       (document.getElementById('nt_' + cardId) || {}).value || '',
+                foto:       Array.from(document.querySelectorAll('#fg_' + cardId + ' img')).map(function(i) { return i.src; })
             };
             localStorage.setItem(k, JSON.stringify(dati));
             var ok = document.getElementById('ok_' + cardId);
@@ -1136,6 +1150,26 @@
             if (btnSv) btnSv.click();
         }
 
+        function cancellaTag(cardId) {
+            if (!confirm('Cancellare il tag salvato?')) return;
+            // Rimuovo nfc dal localStorage
+            var scheda = document.getElementById(cardId);
+            if (!scheda) return;
+            var btnSv = scheda.querySelector('.btn-sv');
+            // Trovo la chiave k dal tasto salva
+            var k = btnSv ? btnSv.getAttribute('onclick').match(/'([^']+)'\)$/)?.[1] : null;
+            if (k) {
+                var saved = JSON.parse(localStorage.getItem(k) || '{}');
+                delete saved.nfc;
+                localStorage.setItem(k, JSON.stringify(saved));
+            }
+            // Pulisco anche la variabile pending
+            window['nfc_pending_' + cardId] = '';
+            // Aggiorno il div
+            var res = document.getElementById('nfcres_' + cardId);
+            if (res) res.innerHTML = '';
+        }
+
         function caXlsxImporta(e, tbodyId) {
             var file = e.target.files[0];
             if (!file) return;
@@ -1177,14 +1211,141 @@
             e.target.value = '';
         }
 
+        // ── IMPORT DA GOOGLE DRIVE ─────────────────────────────
+        function importaDaDrive(tbodyId, cardId) {
+            var linkInput = document.getElementById('drivelink_' + tbodyId);
+            if (!linkInput || !linkInput.value.trim()) {
+                alert('⚠️ Inserisci il link Google Drive prima di importare!');
+                return;
+            }
+            
+            var link = linkInput.value.trim();
+            // Converti link di condivisione in link download diretto
+            var fileId = '';
+            
+            // Formato: https://drive.google.com/file/d/FILE_ID/view
+            var match1 = link.match(/\/file\/d\/([^\/]+)/);
+            // Formato: https://drive.google.com/open?id=FILE_ID
+            var match2 = link.match(/[?&]id=([^&]+)/);
+            
+            if (match1) fileId = match1[1];
+            else if (match2) fileId = match2[1];
+            else {
+                alert('❌ Link non valido. Usa un link di condivisione Google Drive.');
+                return;
+            }
+            
+            var downloadUrl = 'https://drive.google.com/uc?export=download&id=' + fileId;
+            
+            // Scarica e importa
+            fetch(downloadUrl)
+            .then(function(res) {
+                if (!res.ok) throw new Error('File non accessibile - verifica che sia pubblico o condiviso');
+                return res.arrayBuffer();
+            })
+            .then(function(buffer) {
+                var wb = XLSX.read(buffer, { type: 'array' });
+                var ws = wb.Sheets[wb.SheetNames[0]];
+                var rows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
+                
+                // Importa in base al tipo (cv_ = report fibre, ca_ = cavi attestati)
+                if (tbodyId.startsWith('cv_')) {
+                    importaReportFibre(tbodyId, rows);
+                } else if (tbodyId.startsWith('ca_')) {
+                    importaCaviAttestati(tbodyId, rows);
+                }
+            })
+            .catch(function(err) {
+                alert('❌ Errore import Drive: ' + err.message);
+            });
+        }
+        
+        function importaReportFibre(tbodyId, rows) {
+            var tbody = document.getElementById(tbodyId);
+            if (!tbody) return;
+            tbody.innerHTML = '';
+            var start = (rows[0] && typeof rows[0][0] === 'string' && isNaN(rows[0][0])) ? 1 : 0;
+            var tblId = 'tbl_' + tbodyId.replace('cv_','');
+            var tbl = document.getElementById(tblId);
+            if (tbl) tbl.style.display = '';
+            
+            var count = 0;
+            rows.slice(start).forEach(function(row) {
+                if (!row[0] && !row[1] && !row[2] && !row[3]) return;
+                var tr = document.createElement('tr');
+                tr.innerHTML =
+                    '<td><input type="text" value="' + String(row[0]||'') + '" style="text-align:center;width:100%;font-size:10px"></td>' +
+                    '<td><input type="text" value="' + String(row[1]||'') + '" style="text-align:center;width:100%;font-size:10px"></td>' +
+                    '<td><input type="text" value="' + String(row[2]||'') + '" style="text-align:center;width:100%;font-size:10px"></td>' +
+                    '<td><input type="text" value="' + String(row[3]||'') + '" style="text-align:center;width:100%;font-size:10px"></td>' +
+                    '<td><input type="text" value="' + String(row[4]||'') + '" style="text-align:center;width:100%;font-size:10px"></td>' +
+                    '<td><input type="text" value="' + String(row[5]||'') + '" style="text-align:center;width:100%;font-size:9px"></td>';
+                tbody.appendChild(tr);
+                count++;
+            });
+            alert('✅ Importate ' + count + ' righe da Drive!');
+        }
+        
+        function importaCaviAttestati(tbodyId, rows) {
+            var tbody = document.getElementById(tbodyId);
+            if (!tbody) return;
+            tbody.innerHTML = '';
+            var start = (rows[0] && typeof rows[0][0] === 'string' && isNaN(rows[0][0])) ? 1 : 0;
+            var tblId = 'ca_tbl_' + tbodyId.replace('ca_','');
+            var tbl = document.getElementById(tblId);
+            if (tbl) tbl.style.display = '';
+            
+            var count = 0;
+            rows.slice(start).forEach(function(row) {
+                if (!row[0] && !row[1] && !row[2]) return;
+                var tr = document.createElement('tr');
+                tr.innerHTML =
+                    '<td><input type="text" value="' + String(row[0]||'') + '" style="text-align:center;width:100%"></td>' +
+                    '<td><input type="text" value="' + String(row[1]||'') + '" style="text-align:center;width:100%"></td>' +
+                    '<td><input type="text" value="' + String(row[2]||'') + '" style="text-align:center;width:100%"></td>' +
+                    '<td><button class="btn-dr" onclick="this.closest(\'tr\').remove()">🗑</button></td>';
+                tbody.appendChild(tr);
+                count++;
+            });
+            alert('✅ Importati ' + count + ' cavi da Drive!');
+        }
+
+        function filtraCavi(tbodyId, testo) {
+            var tbody = document.getElementById(tbodyId);
+            if (!tbody) return;
+            var t = testo.trim().toLowerCase();
+            var righe = tbody.querySelectorAll('tr');
+            righe.forEach(function(tr) {
+                var inp = tr.querySelectorAll('input');
+                // Cerca in tutte le colonne
+                var cavoA = inp[0] ? inp[0].value.toLowerCase() : '';
+                var fibre = inp[1] ? inp[1].value.toLowerCase() : '';
+                var fibra = inp[2] ? inp[2].value.toLowerCase() : '';
+                var cavoB = inp[3] ? inp[3].value.toLowerCase() : '';
+                var stato = inp[4] ? inp[4].value.toLowerCase() : '';
+                var data = inp[5] ? inp[5].value.toLowerCase() : '';
+                
+                if (!t || cavoA.includes(t) || cavoB.includes(t) || fibre.includes(t) || fibra.includes(t) || stato.includes(t) || data.includes(t)) {
+                    tr.style.display = '';
+                } else {
+                    tr.style.display = 'none';
+                }
+            });
+        }
+
         function caAddRow(tbodyId, data) {
             var tbody = document.getElementById(tbodyId);
             if (!tbody) return;
+            // Mostra la tabella se nascosta
+            var tblId = 'ca_tbl_' + tbodyId.replace('ca_','');
+            var tbl = document.getElementById(tblId);
+            if (tbl) tbl.style.display = '';
+            
             var tr = document.createElement('tr');
             tr.innerHTML =
-                '<td><input type="text" placeholder="ID" style="width:50px" value="' + (data && data.id || '') + '"></td>' +
-                '<td><input type="text" placeholder="Nome cavo" value="' + (data && data.nome || '') + '"></td>' +
-                '<td><input type="text" placeholder="es. 144F" value="' + (data && data.pot || '') + '"></td>' +
+                '<td><input type="text" placeholder="ID" value="' + (data && data.id || '') + '" style="text-align:center;width:100%" onclick="event.stopPropagation()"></td>' +
+                '<td><input type="text" placeholder="Nome cavo" value="' + (data && data.nome || '') + '" style="text-align:center;width:100%" onclick="event.stopPropagation()"></td>' +
+                '<td><input type="text" placeholder="es. 144F" value="' + (data && data.pot || '') + '" style="text-align:center;width:100%" onclick="event.stopPropagation()"></td>' +
                 '<td><button class="btn-dr" onclick="this.closest(\'tr\').remove()">🗑</button></td>';
             tbody.appendChild(tr);
         }
@@ -1202,26 +1363,26 @@
                     var rows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
                     var tbody = document.getElementById(tbodyId);
                     if (!tbody) return;
-                    // Svuota tbody prima di importare
                     tbody.innerHTML = '';
-                    // Salta riga 0 se è intestazione (es. CAVO, FIBRE...)
                     var start = 0;
                     if (rows[0] && typeof rows[0][0] === 'string' && isNaN(rows[0][0])) start = 1;
-                    // Mostra tabella
                     var tblId = 'tbl_' + tbodyId.replace('cv_','');
                     var tbl = document.getElementById(tblId);
                     if (tbl) tbl.style.display = '';
+                    
                     var count = 0;
                     rows.slice(start).forEach(function(row) {
-                        // Salta righe completamente vuote
+                        // Salta righe vuote
                         if (!row[0] && !row[1] && !row[2] && !row[3]) return;
+                        
                         var tr = document.createElement('tr');
                         tr.innerHTML =
-                            '<td><input type="text" value="' + String(row[0]||'') + '" style="text-align:center;width:100%"></td>' +
-                            '<td><input type="text" value="' + String(row[1]||'') + '" style="text-align:center;width:100%"></td>' +
-                            '<td><input type="text" value="' + String(row[2]||'') + '" style="text-align:center;width:100%"></td>' +
-                            '<td><input type="text" value="' + String(row[3]||'') + '" style="text-align:center;width:100%"></td>' +
-                            '<td><button class="btn-dr" onclick="this.closest(\'tr\').remove()">🗑</button></td>';
+                            '<td><input type="text" value="' + String(row[0]||'') + '" style="text-align:center;width:100%;font-size:10px"></td>' +
+                            '<td><input type="text" value="' + String(row[1]||'') + '" style="text-align:center;width:100%;font-size:10px"></td>' +
+                            '<td><input type="text" value="' + String(row[2]||'') + '" style="text-align:center;width:100%;font-size:10px"></td>' +
+                            '<td><input type="text" value="' + String(row[3]||'') + '" style="text-align:center;width:100%;font-size:10px"></td>' +
+                            '<td><input type="text" value="' + String(row[4]||'') + '" style="text-align:center;width:100%;font-size:10px"></td>' +
+                            '<td><input type="text" value="' + String(row[5]||'') + '" style="text-align:center;width:100%;font-size:9px"></td>';
                         tbody.appendChild(tr);
                         count++;
                     });
