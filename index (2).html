@@ -1,0 +1,1506 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Selettore Circuiti Ottici - Avanzato</title>
+    <style>
+        /* ── VARIABILI COLORE ─────────────────────────────── */
+        :root {
+            --primary:   #667eea;
+            --primary-d: #5568d3;
+            --purple:    #764ba2;
+            --bg:        #f0f2f8;
+            --white:     #ffffff;
+            --text:      #222;
+            --text-soft: #666;
+            --border:    #e2e6f0;
+            --shadow:    rgba(102,126,234,0.15);
+            --red:       #e53935;
+            --orange:    #f57c00;
+            --green:     #2e7d32;
+        }
+
+        /* ── RESET ───────────────────────────────────────── */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: var(--bg);
+            min-height: 100vh;
+            padding: 10px;
+        }
+
+        /* ── CONTAINER ───────────────────────────────────── */
+        .container {
+            max-width: 520px;
+            margin: 0 auto;
+            background: var(--white);
+            border-radius: 18px;
+            box-shadow: 0 8px 32px var(--shadow);
+            overflow: hidden;
+        }
+
+        /* ── HEADER ──────────────────────────────────────── */
+        header {
+            background: linear-gradient(135deg, var(--primary), var(--purple));
+            color: var(--white);
+            padding: 18px 16px 14px;
+            text-align: center;
+        }
+        h1 {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 6px;
+            letter-spacing: 0.3px;
+        }
+        .stats {
+            background: rgba(255,255,255,0.18);
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            display: inline-block;
+        }
+
+        /* ── CONTROLS ────────────────────────────────────── */
+        .controls {
+            padding: 14px 12px;
+            background: var(--bg);
+            border-bottom: 1px solid var(--border);
+        }
+
+        /* ── EXPORT ──────────────────────────────────────── */
+        .export-section {
+            margin-bottom: 12px;
+            text-align: center;
+        }
+        .btn-kml {
+            background: linear-gradient(135deg, var(--primary), var(--purple));
+            color: var(--white);
+            border: none;
+            padding: 10px 22px;
+            border-radius: 22px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 3px 10px var(--shadow);
+            transition: all 0.2s;
+            width: 100%;
+        }
+        .btn-kml:hover { opacity: 0.9; transform: translateY(-1px); }
+
+        /* ── FILTRI A GRIGLIA ────────────────────────────── */
+        .filters {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 7px;
+            margin-bottom: 12px;
+        }
+        .btn {
+            padding: 9px 6px;
+            border: none;
+            border-radius: 10px;
+            color: var(--white);
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            text-align: center;
+            transition: all 0.2s;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+            letter-spacing: 0.2px;
+        }
+        .btn:hover  { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.18); }
+        .btn.active { outline: 3px solid rgba(255,255,255,0.6); }
+
+        /* Colori tasti circuiti — tutti unici */
+        .btn-galvani     { background: #c62828; }   /* Rosso          */
+        .btn-corticella  { background: #1565c0; }   /* Blu            */
+        .btn-sangiorgio  { background: #2e7d32; }   /* Verde          */
+        .btn-lavis       { background: #6a1b9a; }   /* Viola          */
+        .btn-stadio      { background: #e65100; }   /* Arancione      */
+        .btn-chiesanuova { background: #00695c; }   /* Verde acqua    */
+        .btn-ld3po015f   { background: #f9a825; }   /* Giallo         */
+        .btn-pulega      { background: #ad1457; }   /* Fucsia         */
+        .btn-castelmaggiore { background: #e91e8c; color: white; }   /* Rosa */
+        .btn-all         { background: #37474f; }   /* Grigio scuro   */
+        .btn-nfc { width:100%; padding:10px; background:linear-gradient(135deg,#1a237e,#283593); color:white; border:none; border-radius:10px; font-size:13px; font-weight:700; cursor:pointer; letter-spacing:.3px; }
+        .btn-nfc:hover { opacity:.9; }
+        .btn-nfc.attivo { background:linear-gradient(135deg,#b71c1c,#c62828); animation: pulse 1s infinite; }
+        @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.7} }
+        .nfc-result { margin-top:8px; font-size:12px; }
+        .nfc-tag-saved { background:#e8f5e9; color:#2e7d32; padding:8px 10px; border-radius:8px; border:1px solid #a5d6a7; }
+        .nfc-tag-new { background:#e3f2fd; color:#1565c0; padding:8px 10px; border-radius:8px; border:1px solid #90caf9; margin-bottom:6px; }
+        .nfc-waiting { background:#fff8e1; color:#f57f17; padding:8px 10px; border-radius:8px; border:1px solid #ffe082; }
+
+        /* ── RICERCA COORDINATE ──────────────────────────── */
+        .coord-search-box {
+            background: #f5f6f8;
+            border-radius: 12px;
+            padding: 12px;
+            margin-bottom: 10px;
+            border: 2px solid #b0bec5;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.04);
+        }
+        .coord-search-box label {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--primary);
+            display: block;
+            margin-bottom: 7px;
+        }
+        .coord-search-row {
+            display: flex;
+            gap: 7px;
+            align-items: center;
+        }
+        .coord-search-row input {
+            flex: 1;
+            padding: 9px 13px;
+            border: 2px solid #b0bec5;
+            border-radius: 20px;
+            font-size: 13px;
+            outline: none;
+            background: #f5f6f8;
+            color: #37474f;
+            transition: border-color 0.25s, box-shadow 0.25s, background 0.25s;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.06);
+        }
+        .coord-search-row input:focus {
+            border-color: var(--primary);
+            background: var(--white);
+            box-shadow: 0 0 0 3px rgba(102,126,234,0.15);
+        }
+        .btn-cerca-coord {
+            padding: 9px 14px;
+            background: var(--primary);
+            color: var(--white);
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 700;
+            white-space: nowrap;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+        .btn-cerca-coord:hover { background: var(--primary-d); }
+        .coord-result {
+            margin-top: 9px;
+            font-size: 12px;
+            color: var(--text);
+            display: none;
+            padding: 9px 11px;
+            background: #f0f4ff;
+            border-radius: 8px;
+            line-height: 1.7;
+        }
+        .coord-result a {
+            color: var(--primary);
+            font-weight: 700;
+            text-decoration: none;
+        }
+
+        /* ── SEARCH BOX ──────────────────────────────────── */
+        .search-box { position: relative; }
+        .search-box input {
+            width: 100%;
+            padding: 11px 16px 11px 40px;
+            border: 2px solid #b0bec5;
+            border-radius: 22px;
+            font-size: 14px;
+            outline: none;
+            background: #f5f6f8;
+            color: #37474f;
+            transition: border-color 0.25s, box-shadow 0.25s, background 0.25s;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.06);
+        }
+        .search-box input:focus {
+            border-color: var(--primary);
+            background: var(--white);
+            box-shadow: 0 0 0 3px rgba(102,126,234,0.15), inset 0 1px 3px rgba(0,0,0,0.04);
+        }
+        .search-box::before {
+            content: '🔍';
+            position: absolute;
+            left: 13px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 14px;
+            pointer-events: none;
+        }
+
+        /* ── RISULTATI ───────────────────────────────────── */
+        .results {
+            padding: 12px;
+            max-height: 55vh;
+            overflow-y: auto;
+        }
+        .results::-webkit-scrollbar { width: 5px; }
+        .results::-webkit-scrollbar-track { background: var(--bg); }
+        .results::-webkit-scrollbar-thumb { background: var(--primary); border-radius: 4px; }
+
+        /* ── CARD ────────────────────────────────────────── */
+        .card {
+            background: var(--white);
+            padding: 13px 14px;
+            margin-bottom: 9px;
+            border-radius: 12px;
+            border-left: 4px solid var(--primary);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .card:hover        { transform: translateX(3px); box-shadow: 0 4px 14px var(--shadow); }
+        .card.sensibile    { border-left-color: var(--red); }
+        .card.notturni     { border-left-color: var(--orange); }
+        .card.edificio     { border-left-color: var(--purple); background: #faf8ff; }
+
+        .card-title {
+            font-weight: 700;
+            font-size: 13px;
+            color: var(--text);
+            margin-bottom: 3px;
+            line-height: 1.3;
+        }
+        .card-address {
+            font-size: 11px;
+            color: var(--text-soft);
+            margin-bottom: 7px;
+        }
+        .card-actions { display: flex; gap: 6px; }
+        .card-btn {
+            flex: 1;
+            padding: 6px;
+            border: none;
+            border-radius: 7px;
+            font-size: 11px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+        }
+        .card-btn-map  { background: #e8eeff; color: var(--primary); }
+        .card-btn-nav  { background: var(--primary); color: var(--white); }
+        .card-btn-map:hover { background: #d0d9ff; }
+        .card-btn-nav:hover { background: var(--primary-d); }
+
+        /* ── NO RESULTS ──────────────────────────────────── */
+        .no-results {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-soft);
+        }
+        .no-results .icon { font-size: 40px; margin-bottom: 10px; }
+
+        /* ── MAP BTN ─────────────────────────────────────── */
+        .map-btn-wrap { padding: 0 12px 14px; }
+        .map-btn {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, var(--primary), var(--purple));
+            color: var(--white);
+            border: none;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 3px 10px var(--shadow);
+            transition: all 0.2s;
+        }
+        .map-btn:hover { opacity: 0.92; transform: translateY(-1px); }
+
+        /* ── BADGE TIPO ──────────────────────────────────── */
+        .badge {
+            display: inline-block;
+            font-size: 10px;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 10px;
+            margin-bottom: 4px;
+        }
+        .badge-sensibile { background: #ffebee; color: var(--red); }
+        .badge-notturni  { background: #fff3e0; color: var(--orange); }
+        .badge-normale   { background: #e8eeff; color: var(--primary); }
+        .badge-edificio  { background: #f3e5f5; color: var(--purple); }
+
+        .card-btn-scheda{background:#ede7f6;color:#4527a0;}
+        .card-btn-scheda:hover{background:#d1c4e9;}
+
+        .scheda-expand {
+            display: none;
+            margin-top: 10px;
+            border-top: 1px solid #e2e6f0;
+            padding-top: 10px;
+        }
+        .scheda-expand.aperta { display: block; }
+        .se-row { margin-bottom: 10px; }
+        .se-label { font-size: 10px; font-weight: 700; color: #667eea; text-transform: uppercase; letter-spacing: .4px; margin-bottom: 4px; }
+        .se-select, .se-textarea {
+            width: 100%; padding: 8px 10px;
+            border: 1.5px solid #e2e6f0; border-radius: 8px;
+            font-size: 12px; background: #f5f6f8;
+            color: #222; outline: none; font-family: inherit;
+        }
+        .se-select:focus, .se-textarea:focus { border-color: #667eea; background: #fff; }
+        .se-textarea { min-height: 60px; resize: vertical; }
+        .ctbl { width:100%; border-collapse:collapse; font-size:10px; table-layout:fixed; overflow-x:auto; }
+        .ctbl th { background:#e8eeff; padding:5px 2px; text-align:center; font-size:9px; font-weight:700; color:#667eea; border-bottom:2px solid #c5cae9; word-break:break-word; }
+        .ctbl td { padding:3px 1px; border-bottom:1px solid #e2e6f0; vertical-align:middle; text-align:center; font-size:10px; }
+        .ctbl td input { width:100%; border:1px solid #e2e6f0; border-radius:4px; padding:3px 2px; font-size:10px; background:#f5f6f8; outline:none; box-sizing:border-box; min-width:0; text-align:center; }
+        .ctbl td input:focus { border-color:#667eea; background:#fff; }
+        .ctbl th:nth-child(1),.ctbl td:nth-child(1) { width:25%; text-align:center; }
+        .ctbl th:nth-child(2),.ctbl td:nth-child(2) { width:10%; text-align:center; }
+        .ctbl th:nth-child(3),.ctbl td:nth-child(3) { width:10%; text-align:center; }
+        .ctbl th:nth-child(4),.ctbl td:nth-child(4) { width:25%; text-align:center; }
+        .ctbl th:nth-child(5),.ctbl td:nth-child(5) { width:15%; text-align:center; }
+        .ctbl th:nth-child(6),.ctbl td:nth-child(6) { width:15%; text-align:center; }
+        .btn-dr { background: #ffebee; color: #c62828; border: none; border-radius: 5px; width: 22px; height: 22px; cursor: pointer; font-size: 12px; }
+        .btn-ar { width: 100%; padding: 6px; background: #f5f6f8; border: 1.5px dashed #b0bec5; border-radius: 7px; color: #667eea; font-size: 11px; font-weight: 700; cursor: pointer; margin-top: 4px; }
+        .fgrid { display: grid; grid-template-columns: repeat(3,1fr); gap: 6px; margin-bottom: 6px; }
+        .fwrap { position: relative; }
+        .fimg { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 7px; border: 1px solid #e2e6f0; }
+        .fdel { position: absolute; top: 2px; right: 2px; background: rgba(0,0,0,.55); color: #fff; border: none; border-radius: 50%; width: 18px; height: 18px; font-size: 10px; cursor: pointer; }
+        .btn-af { width: 100%; padding: 7px; background: #f5f6f8; border: 1.5px dashed #b0bec5; border-radius: 7px; color: #667eea; font-size: 11px; font-weight: 700; cursor: pointer; }
+        .se-actions { display: flex; gap: 6px; margin-top: 10px; }
+        .btn-sv { flex: 2; padding: 9px; background: #667eea; color: #fff; border: none; border-radius: 9px; font-size: 13px; font-weight: 700; cursor: pointer; }
+        .btn-sv:hover { background: #5568d3; }
+        .sv-ok { font-size: 11px; color: #2e7d32; margin-top: 5px; display: none; text-align: center; }
+        .card-btn-scheda { background: #ede7f6 !important; color: #4527a0 !important; }
+        /* ── EXCEL BUTTONS ── */
+        .excel-btns { display:flex; gap:6px; margin-bottom:6px; }
+        .btn-xlsx-imp { flex:1; padding:6px; background:#e8f5e9; border:1.5px solid #a5d6a7; border-radius:8px; color:#2e7d32; font-size:11px; font-weight:700; cursor:pointer; }
+        .btn-xlsx-exp { flex:1; padding:6px; background:#e3f2fd; border:1.5px solid #90caf9; border-radius:8px; color:#1565c0; font-size:11px; font-weight:700; cursor:pointer; }
+        .btn-xlsx-imp:hover { background:#c8e6c9; }
+        .btn-xlsx-exp:hover { background:#bbdefb; }
+
+        /* ── PROVINCE ─────────────────────────────────────── */
+        .province-bar {
+            display: flex; gap: 6px; flex-wrap: wrap;
+            margin-bottom: 8px;
+        }
+        .btn-prov {
+            flex: 1; min-width: 60px;
+            padding: 8px 4px; border: 2px solid #667eea;
+            border-radius: 10px; background: white;
+            color: #667eea; font-size: 12px; font-weight: 700;
+            cursor: pointer; text-align: center;
+            transition: all .2s;
+        }
+        .btn-prov.active {
+            background: #667eea; color: white;
+        }
+        .btn-prov:hover { background: #667eea; color: white; }
+        .prov-circuits { margin-bottom: 6px; }
+        .prov-empty {
+            text-align: center; color: #aaa;
+            font-size: 12px; padding: 10px;
+            border: 1.5px dashed #e2e6f0;
+            border-radius: 10px;
+        }
+
+        .btn-tipo-doc {
+            padding: 6px 10px; background: white;
+            border: 1.5px solid #e2e6f0; border-radius: 8px;
+            font-size: 11px; font-weight: 700; color: #555;
+            cursor: pointer; transition: all .2s;
+        }
+        .btn-tipo-doc:hover { background: #667eea; color: white; border-color: #667eea; }
+
+        .btn-fe-centro     { background: #0277bd; color: white; }
+        .btn-fe-mulinetto  { background: #00838f; color: white; }
+        .btn-fe-mizzana    { background: #558b2f; color: white; }
+        .btn-fe-portareno  { background: #6a1b9a; color: white; }
+
+        .btn-mo-centro   { background: #c62828; color: white; }
+        .btn-mo-est      { background: #e65100; color: white; }
+        .btn-mo-giardini { background: #2e7d32; color: white; }
+        .btn-mo-ovest    { background: #1565c0; color: white; }
+        .btn-mo-sacca    { background: #6a1b9a; color: white; }
+        .btn-mo-sud      { background: #00695c; color: white; }
+
+        .btn-im-centro    { background: #b71c1c; color: white; }
+        .btn-im-serraglio { background: #f57f17; color: white; }
+        .btn-im-montanara { background: #1b5e20; color: white; }
+        .btn-im-belvedere { background: #0d47a1; color: white; }
+        .btn-im-mordano   { background: #4a148c; color: white; }
+
+        .btn-medicina        { background: #ad1457; color: white; }
+        .btn-castelsanpietro { background: #4e342e; color: white; }
+        .btn-castelguelfo    { background: #1a237e; color: white; }
+
+        .btn-pr-centro    { background: #c62828; color: white; }
+        .btn-pr-est       { background: #e65100; color: white; }
+        .btn-pr-ovest     { background: #1565c0; color: white; }
+        .btn-pr-parma     { background: #2e7d32; color: white; }
+        .btn-pr-collecchio{ background: #6a1b9a; color: white; }
+        .btn-pr-fidenza   { background: #00695c; color: white; }
+
+        .btn-lavino        { background: #00838f; color: white; }
+        .btn-castenaso     { background: #558b2f; color: white; }
+        .btn-bo-sandonato  { background: #c62828; color: white; }
+        .btn-sanlazzaro    { background: #e65100; color: white; }
+        .btn-ozzano        { background: #f9a825; color: white; }
+        .btn-bo-pallone    { background: #2e7d32; color: white; }
+        .btn-bo-ducati     { background: #1565c0; color: white; }
+        .btn-bo-sanmammolo { background: #6a1b9a; color: white; }
+        .btn-bo-bertalia   { background: #37474f; color: white; }
+        .btn-casalecchio   { background: #ad1457; color: white; }
+        .btn-budrio        { background: #4e342e; color: white; }
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🗺️ Selettore Circuiti Ottici - Versione Avanzata</h1>
+            <div class="stats">
+                Totale: <span id="total">275</span> punti | 
+                Visibili: <span id="visible">275</span>
+            </div>
+        </header>
+        
+        <div class="controls">
+            <div class="export-section" style="margin-bottom: 20px; display:flex; gap:8px;">
+                <button class="btn-kml" onclick="exportData()" style="flex:1">
+                    💾 Esporta CSV
+                </button>
+                <button class="btn-kml" onclick="apriDocs()" style="flex:1; background:linear-gradient(135deg,#2e7d32,#388e3c);">
+                    📄 Cerca Documenti
+                </button>
+            </div>
+
+            <!-- PANNELLO DOCUMENTI -->
+            <div id="docs-panel" style="display:none; margin-bottom:12px; background:#f5f6f8; border-radius:14px; padding:14px; border:1.5px solid #e2e6f0;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                    <span style="font-size:12px; font-weight:700; color:#667eea; text-transform:uppercase; letter-spacing:.4px;">📄 Cerca Documenti</span>
+                    <button onclick="chiudiDocs()" style="background:none; border:none; font-size:16px; cursor:pointer; color:#aaa;">✕</button>
+                </div>
+
+                <!-- Ricerca Google Drive -->
+                <div style="margin-bottom:10px;">
+                    <div style="font-size:11px; font-weight:700; color:#555; margin-bottom:5px;">☁️ Google Drive</div>
+                    <div style="display:flex; gap:6px;">
+                        <input type="text" id="driveSearch" placeholder="Cerca su Drive (es. giunto, report...)"
+                            style="flex:1; padding:9px 12px; border:1.5px solid #e2e6f0; border-radius:20px; font-size:12px; outline:none; background:white;"
+                            onkeydown="if(event.key==='Enter') cercaDrive()">
+                        <button onclick="cercaDrive()"
+                            style="padding:9px 14px; background:#667eea; color:white; border:none; border-radius:20px; font-size:12px; font-weight:700; cursor:pointer;">
+                            🔍
+                        </button>
+                    </div>
+                    <div style="display:flex; gap:6px; margin-top:6px; flex-wrap:wrap;">
+                        <button class="btn-tipo-doc" onclick="cercaDriveTipo('pdf')">📕 PDF</button>
+                        <button class="btn-tipo-doc" onclick="cercaDriveTipo('word')">📘 Word</button>
+                        <button class="btn-tipo-doc" onclick="cercaDriveTipo('excel')">📗 Excel</button>
+                        <button class="btn-tipo-doc" onclick="apriDriveRoot()">📂 Tutto Drive</button>
+                    </div>
+                </div>
+
+                <!-- File locali -->
+                <div>
+                    <div style="font-size:11px; font-weight:700; color:#555; margin-bottom:5px;">📱 File Locali</div>
+                    <div style="display:flex; gap:6px; flex-wrap:wrap;">
+                        <button class="btn-tipo-doc" onclick="apriFileLocale('pdf')">📕 Apri PDF</button>
+                        <button class="btn-tipo-doc" onclick="apriFileLocale('word')">📘 Apri Word</button>
+                        <button class="btn-tipo-doc" onclick="apriFileLocale('excel')">📗 Apri Excel</button>
+                        <button class="btn-tipo-doc" onclick="apriFileLocale('tutti')">📂 Tutti i file</button>
+                    </div>
+                    <div id="file-locale-preview" style="margin-top:8px;"></div>
+                </div>
+            </div>
+            
+            <!-- PROVINCE -->
+            <div class="province-bar">
+                <button class="btn-prov active" onclick="toggleProv('bologna',this)">📍 Bologna</button>
+                <button class="btn-prov" onclick="toggleProv('ferrara',this)">📍 Ferrara</button>
+                <button class="btn-prov" onclick="toggleProv('modena',this)">📍 Modena</button>
+                <button class="btn-prov" onclick="toggleProv('imola',this)">📍 Imola</button>
+                <button class="btn-prov" onclick="toggleProv('parma',this)">📍 Parma</button>
+            </div>
+
+            <!-- CIRCUITI BOLOGNA -->
+            <div class="filters prov-circuits" id="prov-bologna">
+                <button class="btn btn-galvani" data-c="galvani">Galvani</button>
+                <button class="btn btn-corticella" data-c="corticella">Corticella</button>
+                <button class="btn btn-sangiorgio" data-c="sangiorgio">S.Giorgio</button>
+                <button class="btn btn-lavis" data-c="lavis">Zola Predosa</button>
+                <button class="btn btn-stadio" data-c="stadio">Stadio</button>
+                <button class="btn btn-chiesanuova" data-c="chiesanuova">Chiesanuova</button>
+                <button class="btn btn-ld3po015f" data-c="ld3po015f">Maserati</button>
+                <button class="btn btn-pulega" data-c="pulega">Pulega</button>
+                <button class="btn btn-castelmaggiore" data-c="castelmaggiore">Castel Maggiore</button>
+                <button class="btn btn-medicina" data-c="medicina">Medicina</button>
+                <button class="btn btn-castelsanpietro" data-c="castelsanpietro">Castel San Pietro</button>
+                <button class="btn btn-castelguelfo" data-c="castelguelfo">Castel Guelfo</button>
+                <button class="btn btn-lavino" data-c="lavino">Lavino</button>
+                <button class="btn btn-castenaso" data-c="castenaso">Castenaso</button>
+                <button class="btn btn-bo-sandonato" data-c="bo-sandonato">Bo-San Donato</button>
+                <button class="btn btn-sanlazzaro" data-c="sanlazzaro">San Lazzaro</button>
+                <button class="btn btn-ozzano" data-c="ozzano">Ozzano</button>
+                <button class="btn btn-bo-pallone" data-c="bo-pallone">Bo Pallone</button>
+                <button class="btn btn-bo-ducati" data-c="bo-ducati">Bo Ducati</button>
+                <button class="btn btn-bo-sanmammolo" data-c="bo-sanmammolo">Bo San Mammolo</button>
+                <button class="btn btn-bo-bertalia" data-c="bo-bertalia">Bo Bertalia</button>
+                <button class="btn btn-casalecchio" data-c="casalecchio">Casalecchio</button>
+                <button class="btn btn-budrio" data-c="budrio">Budrio</button>
+            </div>
+
+            <!-- CIRCUITI FERRARA -->
+            <div class="filters prov-circuits" id="prov-ferrara" style="display:none">
+                <button class="btn btn-fe-centro" data-c="fe-centro">Ferrara Centro</button>
+                <button class="btn btn-fe-mulinetto" data-c="fe-mulinetto">Ferrara Mulinetto</button>
+                <button class="btn btn-fe-mizzana" data-c="fe-mizzana">Ferrara Mizzana</button>
+                <button class="btn btn-fe-portareno" data-c="fe-portareno">Ferrara Porta Reno</button>
+            </div>
+
+            <!-- CIRCUITI MODENA -->
+            <div class="filters prov-circuits" id="prov-modena" style="display:none">
+                <button class="btn btn-mo-centro" data-c="mo-centro">Modena Centro</button>
+                <button class="btn btn-mo-est" data-c="mo-est">Modena Est</button>
+                <button class="btn btn-mo-giardini" data-c="mo-giardini">Modena Giardini</button>
+                <button class="btn btn-mo-ovest" data-c="mo-ovest">Modena Ovest</button>
+                <button class="btn btn-mo-sacca" data-c="mo-sacca">Modena Sacca</button>
+                <button class="btn btn-mo-sud" data-c="mo-sud">Modena Sud</button>
+            </div>
+
+            <!-- CIRCUITI IMOLA -->
+            <div class="filters prov-circuits" id="prov-imola" style="display:none">
+                <button class="btn btn-im-centro" data-c="im-centro">Imola Centro</button>
+                <button class="btn btn-im-serraglio" data-c="im-serraglio">Imola Serraglio</button>
+                <button class="btn btn-im-montanara" data-c="im-montanara">Imola Montanara</button>
+                <button class="btn btn-im-belvedere" data-c="im-belvedere">Imola Belvedere</button>
+                <button class="btn btn-im-mordano" data-c="im-mordano">Mordano</button>
+            </div>
+
+            <!-- CIRCUITI PARMA -->
+            <div class="filters prov-circuits" id="prov-parma" style="display:none">
+                <button class="btn btn-pr-centro" data-c="pr-centro">Parma Centro</button>
+                <button class="btn btn-pr-est" data-c="pr-est">Parma Est</button>
+                <button class="btn btn-pr-ovest" data-c="pr-ovest">Parma Ovest</button>
+                <button class="btn btn-pr-parma" data-c="pr-parma">Parma</button>
+                <button class="btn btn-pr-collecchio" data-c="pr-collecchio">Collecchio</button>
+                <button class="btn btn-pr-fidenza" data-c="pr-fidenza">Fidenza</button>
+            </div>
+
+            <!-- TUTTI/NESSUNO -->
+            <div style="margin-top:6px;">
+                <button class="btn btn-all" style="width:100%" onclick="toggleAll()">Tutti/Nessuno</button>
+            </div>
+            
+            
+            <div class="coord-search-box">
+                <label>🔍 Cerca per coordinate o indirizzo</label>
+                <div class="coord-search-row">
+                    <input type="text" id="coordInput" placeholder="Es: 44.5033, 11.3439  oppure  Via Roma, Bologna">
+                    <button class="btn-cerca-coord" onclick="cercaCoord()">🗺️ Cerca</button>
+                </div>
+                <div class="coord-result" id="coordResult"></div>
+            </div>
+
+            <div class="search-box">
+                <input type="text" id="search" placeholder="Cerca per nome giunto o indirizzo...">
+            </div>
+        </div>
+        
+        <div class="results" id="results"></div>
+        
+        <div class="map-btn-wrap">
+            <button class="map-btn" onclick="openFirstMap()">
+                🗺️ Apri primo punto su Google Maps
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const originalData = [{"n":"🏢 TIT-BO-BOLOGNA-GALVANI","a":"VIA DEGLI ALBARI, 9","c":"galvani","lat":44.49674646,"lon":11.34526555,"t":"edificio"},{"n":"📍 GOI-GOI/c/00","a":"VIA GOITO, 18","c":"galvani","lat":44.49674646,"lon":11.34526555,"t":"normale"},{"n":"📍 GOI-GOI/b/00","a":"VIA GOITO, 18","c":"galvani","lat":44.49673802,"lon":11.34518584,"t":"normale"},{"n":"📍 PIE-SST/b/01","a":"VIA GOITO, 18","c":"galvani","lat":44.49630939,"lon":11.34462605,"t":"sensibile"},{"n":"📍 CAR-CAR/a/00","a":"VIA CARBONARA, 3","c":"galvani","lat":44.49542478,"lon":11.34505282,"t":"normale"},{"n":"📍 ALB-ALB/a/00","a":"VIA DEGLI ALBARI, 1","c":"galvani","lat":44.49525183,"lon":11.34575022,"t":"normale"},{"n":"📍 OBE-OBE/a/00","a":"VLO TUBERTINI, 2","c":"galvani","lat":44.49396124,"lon":11.34530782,"t":"normale"},{"n":"📍 ORE-ORE/a/00","a":"VIA DEGLI OREFICI, 23","c":"galvani","lat":44.49380953,"lon":11.34637746,"t":"normale"},{"n":"📍 MER-MER/a/00","a":"VIA CAPRARIE, 4","c":"galvani","lat":44.4926802,"lon":11.34769035,"t":"normale"},{"n":"📍 ALE-ALE/a/00","a":"VIA SANTO STEFANO, 9","c":"galvani","lat":44.4927341,"lon":11.35021193,"t":"normale"},{"n":"📍 MIC-MIC/a/00","a":"SDA MAGGIORE, 29","c":"galvani","lat":44.50119015,"lon":11.35671486,"t":"normale"},{"n":"🏢 TIT-BO-BOLOGNA-CORTICELLA","a":"VIA STENDHAL, 31","c":"corticella","lat":44.53671508,"lon":11.35880641,"t":"edificio"},{"n":"📍 PAP-TUS/a/01","a":"VIA GABUSSI, 10","c":"corticella","lat":44.53632623,"lon":11.36033304,"t":"normale"},{"n":"📍 MIC-PUL/EDT/04","a":"VIA TUSCOLANO, 17","c":"corticella","lat":44.53449335,"lon":11.3589781,"t":"sensibile"},{"n":"📍 CAM-CAM/b/00","a":"VIA TUSCOLANO, 15","c":"corticella","lat":44.53650523,"lon":11.35417055,"t":"sensibile"},{"n":"📍 PER-TUS/a/07","a":"VIA RONCAGLIO","c":"corticella","lat":44.53451406,"lon":11.34831031,"t":"sensibile"},{"n":"📍 ARC-ARC/a/00","a":"VIA ARCOVEGGIO, 74/2","c":"corticella","lat":44.53051194,"lon":11.34790464,"t":"normale"},{"n":"📍 GOB-TUS/a/03","a":"VIA ARCOVEGGIO, 49","c":"corticella","lat":44.53051194,"lon":11.34790464,"t":"normale"},{"n":"🏢 TIT-BO-BOLOGNA-STADIO","a":"VIA ANDREA COSTA, 153","c":"stadio","lat":44.49890669,"lon":11.31711389,"t":"edificio"},{"n":"🏢 POP: FTW-BO-MELOZZO","a":"VIA MELOZZO DA FORLI', 44","c":"stadio","lat":44.50257616,"lon":11.30271496,"t":"edificio"},{"n":"📍 MEL-MEL/b/00","a":"VIA MELOZZO DA FORLI', 23","c":"stadio","lat":44.50257616,"lon":11.30271496,"t":"normale"},{"n":"📍 BOMMP002_GPga04","a":"VIA SEGANTINI, 28","c":"stadio","lat":44.50305847,"lon":11.30536665,"t":"normale"},{"n":"📍 BOMMP002_GP63S0","a":"VIA PASUBIO, 61","c":"stadio","lat":44.50161054,"lon":11.30788346,"t":"normale"},{"n":"📍 PIA-PIA/a/00","a":"VIA PASUBIO","c":"stadio","lat":44.49964987,"lon":11.31468928,"t":"normale"},{"n":"📍 GOR-GOR/a/00","a":"VIA GORIZIA, 38","c":"stadio","lat":44.50129605,"lon":11.31610527,"t":"normale"},{"n":"📍 TIM-TIM/a/00","a":"VIA GORIZIA, 23","c":"stadio","lat":44.50057469,"lon":11.31830942,"t":"normale"},{"n":"📍 TIM-TOF/b/01","a":"VIA PASUBIO, 27","c":"stadio","lat":44.49890669,"lon":11.31711389,"t":"normale"},{"n":"📍 TOF-TOF/a/00","a":"VIA TOFANE, 17","c":"stadio","lat":44.49694383,"lon":11.3161763,"t":"normale"},{"n":"📍 VAN-VAN/a/00","a":"VIA VANCINI, 4","c":"stadio","lat":44.49542539,"lon":11.31415646,"t":"normale"},{"n":"🏢 TIT-BO-BOLOGNA-CHIESANUOVA","a":"VIA GIGLI, 1","c":"chiesanuova","lat":44.475736,"lon":11.3672623,"t":"edificio"},{"n":"🏢 POGGIPOLINI","a":"VIA EMILIA 262","c":"chiesanuova","lat":44.46357138,"lon":11.42680566,"t":"edificio"},{"n":"📍 CHI-CHI/a/00","a":"VIA MURRI, 128","c":"chiesanuova","lat":44.475736,"lon":11.3672623,"t":"normale"},{"n":"📍 LD1/BO-RM/G1/5a","a":"VIA MURRI, 128","c":"chiesanuova","lat":44.475736,"lon":11.3672623,"t":"notturni"},{"n":"📍 BEE-MUR/a/01","a":"VIA LABRIOLA, 2","c":"chiesanuova","lat":44.46446285,"lon":11.37005756,"t":"normale"},{"n":"📍 PON-PON/a/00","a":"VIA PONCHIELLI","c":"chiesanuova","lat":44.46584212,"lon":11.37442041,"t":"normale"},{"n":"📍 MAR-MAR/a/00","a":"VIA PALESTRINA, 2","c":"chiesanuova","lat":44.46711625,"lon":11.37657,"t":"normale"},{"n":"📍 FOS-MAG/a/01","a":"VIALE ROMA","c":"chiesanuova","lat":44.47072394,"lon":11.39027624,"t":"normale"},{"n":"📍 BEL-BEL/b/00","a":"VIA BELLARIA","c":"chiesanuova","lat":44.46678786,"lon":11.39641895,"t":"normale"},{"n":"📍 FOS-MAG/a/02","a":"VIA BELLARIA","c":"chiesanuova","lat":44.46678786,"lon":11.39641895,"t":"normale"},{"n":"📍 CAN-CAN/a/00","a":"VIA CANOVA, 4","c":"chiesanuova","lat":44.47255338,"lon":11.4017313,"t":"notturni"},{"n":"📍 LD_MIC-PUL/EDT/8","a":"VIA FOSSE ARDEATINE, 16","c":"chiesanuova","lat":44.4630622,"lon":11.40594682,"t":"notturni"},{"n":"📍 FOS-REM/a/01","a":"VIA GIOVANNI XXIII","c":"chiesanuova","lat":44.46386167,"lon":11.41280772,"t":"notturni"},{"n":"📍 IND-VIG/a/01","a":"VIA FONDE'/INDUSTRIA","c":"chiesanuova","lat":44.46206595,"lon":11.42519737,"t":"sensibile"},{"n":"🏢 TIT-BH-S. GIORGIO","a":"VIA VOLONTARI LIBERTA'","c":"sangiorgio","lat":44.64765605,"lon":11.3749289,"t":"edificio"},{"n":"🏢 VERIZON/Cargotec","a":"VIA IV NOVEMBRE 12","c":"sangiorgio","lat":44.61775126,"lon":11.45245095,"t":"edificio"},{"n":"📍 GAL-PAN/a/01","a":"VIA PACE","c":"sangiorgio","lat":44.64578954,"lon":11.37923899,"t":"normale"},{"n":"📍 MIN-PAN/a/01 (1)","a":"VIA 20 SETTEMBRE","c":"sangiorgio","lat":44.63916248,"lon":11.40401112,"t":"normale"},{"n":"📍 MIN-PAN/a/01 (2)","a":"VIA MARCONI","c":"sangiorgio","lat":44.63635756,"lon":11.41730374,"t":"normale"},{"n":"📍 MIN-MIN/a/00","a":"VIA HO CHI MINH","c":"sangiorgio","lat":44.62521389,"lon":11.41558109,"t":"normale"},{"n":"📍 MIN-ROM/a/01","a":"VIA SALICETO","c":"sangiorgio","lat":44.62497896,"lon":11.41765504,"t":"normale"},{"n":"📍 LD1/BO-VE/G1/15/02","a":"VIA SALICETO","c":"sangiorgio","lat":44.6243634,"lon":11.43470324,"t":"normale"},{"n":"📍 BAR-ROM/a/01","a":"VIA SALETTO","c":"sangiorgio","lat":44.62008431,"lon":11.45427161,"t":"normale"},{"n":"📍 LD1/BO-VE/G1/15","a":"VIA NAZIONALE, 99","c":"sangiorgio","lat":44.61775126,"lon":11.45245095,"t":"notturni"},{"n":"📍 NAZ-NAZ/a/00","a":"VIA NAZIONALE, 43","c":"sangiorgio","lat":44.62008431,"lon":11.45427161,"t":"notturni"},{"n":"🏢 TIT-BH-ZOLA PREDOSA","a":"VIA ROMITA, 4","c":"lavis","lat":44.48911403,"lon":11.22223985,"t":"edificio"},{"n":"📍 PRE-SOL/a/02","a":"ZOLA PREDOSA VIA CELLINI","c":"lavis","lat":44.48911403,"lon":11.22223985,"t":"normale"},{"n":"📍 RIS-RIS/a/00","a":"ZOLA PREDOSA VIA RISORGIMENTO","c":"lavis","lat":44.49107935,"lon":11.21866187,"t":"normale"},{"n":"📍 PRA-RIS/a/02","a":"ZOLA PREDOSA SP569","c":"lavis","lat":44.49811342,"lon":11.19914451,"t":"normale"},{"n":"📍 PRA-RIS/a/01","a":"ZOLA PREDOSA VIA CARDUCCI","c":"lavis","lat":44.49990399,"lon":11.19480331,"t":"normale"},{"n":"📍 PRA-PRA/a/00","a":"ZOLA PREDOSA VIA PRATI","c":"lavis","lat":44.50296056,"lon":11.18603837,"t":"normale"},{"n":"🏢 VODAFONE/COMETA SPA","a":"VIA RISORGIMENTO 440","c":"lavis","lat":44.50296056,"lon":11.18603837,"t":"edificio"},{"n":"🏢 POP: FTW-BO-Maserati","a":"VIA MASERATI, 3/3","c":"ld3po015f","lat":44.52397519,"lon":11.36484262,"t":"edificio"},{"n":"📍 STA-STA/c/02","a":"BOLOGNA - VIA STALINGRADO","c":"ld3po015f","lat":44.52397519,"lon":11.36484262,"t":"sensibile"},{"n":"📍 DOZ-STA/a/01","a":"BOLOGNA - VIA STALINGRADO, 160","c":"ld3po015f","lat":44.52615554,"lon":11.36641694,"t":"sensibile"},{"n":"📍 DOZ-DOZ/a/00","a":"BOLOGNA - VIA FERRARESE, 158","c":"ld3po015f","lat":44.52808104,"lon":11.36589175,"t":"notturni"},{"n":"📍 GOM-GOM/a/00","a":"BOLOGNA - VIA APOSAZZA, 2","c":"ld3po015f","lat":44.53464226,"lon":11.36762302,"t":"notturni"},{"n":"📍 LD1/BO-VE/G1/7a-CAD-CAD/a/00","a":"BOLOGNA - VIA CADRIANO, 23","c":"ld3po015f","lat":44.52884047,"lon":11.38394261,"t":"normale"},{"n":"📍 CAD-CAD/b/00","a":"GRANAROLO DELL'EMILIA","c":"ld3po015f","lat":44.54724667,"lon":11.3979092,"t":"notturni"},{"n":"📍 LD2/BO-VE/G1/8","a":"GRANAROLO DELL'EMILIA - VIA GIACOMO MATTEOTTI, 21","c":"ld3po015f","lat":44.54918043,"lon":11.3926589,"t":"notturni"},{"n":"📍 MAT-MAT/a/00 - LD1/BO-VE/G1/9","a":"GRANAROLO DELL'EMILIA","c":"ld3po015f","lat":44.55030274,"lon":11.38949989,"t":"notturni"},{"n":"📍 LD1/BO-VE/G1/10","a":"GRANAROLO DELL'EMILIA","c":"ld3po015f","lat":44.55124081,"lon":11.38696385,"t":"notturni"},{"n":"📍 LD1/BO-VE/G1/11","a":"CASTEL MAGGIORE","c":"ld3po015f","lat":44.5625935,"lon":11.39634727,"t":"notturni"},{"n":"📍 LD1/BO-VE/G1/12","a":"CASTEL MAGGIORE","c":"ld3po015f","lat":44.5647564,"lon":11.3996856,"t":"notturni"},{"n":"📍 LD1/BO-VE/G1/13","a":"GRANAROLO DELL'EMILIA - VIA PORRETTANA, 63","c":"ld3po015f","lat":44.58755639,"lon":11.42963803,"t":"notturni"},{"n":"📍 LD1/BO-VE/G1/14","a":"MINERBIO - VIA NAZIONALE, 26","c":"ld3po015f","lat":44.60142223,"lon":11.43985682,"t":"notturni"},{"n":"📍 LD1/BO-VE/G1/15 BAR-BAR/a/00","a":"MINERBIO - VIA NAZIONALE, 99","c":"ld3po015f","lat":44.61775126,"lon":11.45245095,"t":"notturni"},{"n":"📍 NAZ-NAZ/a/00-LD1/BO-VE/G1/15.a","a":"MINERBIO - VIA NAZIONALE, 43","c":"ld3po015f","lat":44.62008431,"lon":11.45427161,"t":"notturni"},{"n":"📍 LD1/VE-BO/G3/10","a":"MALALBERGO","c":"ld3po015f","lat":44.6297256,"lon":11.46328746,"t":"notturni"},{"n":"📍 LD1/VE-BO/G3/9","a":"MALALBERGO","c":"ld3po015f","lat":44.63429306,"lon":11.46756813,"t":"notturni"},{"n":"📍 LD1/VE-BO/G3/8","a":"MALALBERGO","c":"ld3po015f","lat":44.64782109,"lon":11.48019358,"t":"notturni"},{"n":"📍 LD1/VE-BO/G3/7","a":"MALALBERGO","c":"ld3po015f","lat":44.67613585,"lon":11.49251767,"t":"notturni"},{"n":"📍 LD1/VE-BO/G3/6","a":"MALALBERGO","c":"ld3po015f","lat":44.70691257,"lon":11.51194144,"t":"notturni"},{"n":"📍 LD1/VE-BO/G3/5","a":"POGGIO RENATICO","c":"ld3po015f","lat":44.72738532,"lon":11.548179,"t":"notturni"},{"n":"📍 LD1/VE-BO/G3/4","a":"POGGIO RENATICO","c":"ld3po015f","lat":44.75627143,"lon":11.54739327,"t":"notturni"},{"n":"📍 LD1/VE-BO/G3/3","a":"POGGIO RENATICO","c":"ld3po015f","lat":44.78869628,"lon":11.5557143,"t":"notturni"},{"n":"📍 LD1/VE-BO/G3/2c","a":"POGGIO RENATICO","c":"ld3po015f","lat":44.79448876,"lon":11.54432489,"t":"notturni"},{"n":"📍 LD1/VE-BO/G3/2bis PEL-PEL/a/00","a":"FERRARA","c":"ld3po015f","lat":44.79624284,"lon":11.54158329,"t":"notturni"},{"n":"📍 LD1/VE-BO/G3/2","a":"FERRARA","c":"ld3po015f","lat":44.81566303,"lon":11.55578637,"t":"notturni"},{"n":"📍 LD1/VE-BO/G3/1","a":"FERRARA","c":"ld3po015f","lat":44.82258585,"lon":11.56175617,"t":"notturni"},{"n":"📍 LD2/VE-BO/G3/1bis","a":"FERRARA","c":"ld3po015f","lat":44.83038314,"lon":11.5683153,"t":"sensibile"},{"n":"🏢 Shelter: FTW-FE-Costabili","a":"VIA COSTABILI, 6/B","c":"ld3po015f","lat":44.83038314,"lon":11.5683153,"t":"edificio"},{"n":"📍 LD1/BO-VE/G1/7a","a":"VIA CADRIANO, 23","c":"ld3po015f","lat":44.52884047,"lon":11.38394261,"t":"notturni"},{"n":"📍 MAT-MAT/a/00","a":"GRANAROLO VIA MATTEOTTI","c":"ld3po015f","lat":44.55030274,"lon":11.38949989,"t":"notturni"},{"n":"📍 LD1/BO-VE/G1/15","a":"MINERBIO VIA NAZIONALE","c":"ld3po015f","lat":44.61775126,"lon":11.45245095,"t":"notturni"},{"n":"📍 NAZ-NAZ/a/00","a":"MINERBIO VIA NAZIONALE","c":"ld3po015f","lat":44.62008431,"lon":11.45427161,"t":"notturni"},{"n":"📍 LD1/VE-BO/G3/2bis","a":"FERRARA VIA PELOSA","c":"ld3po015f","lat":44.79624284,"lon":11.54158329,"t":"notturni"},{"n":"🏢 POP: FTW-BO-Pulega","a":"VIA AUGUSTO PULEGA","c":"pulega","lat":44.49740586,"lon":11.29307299,"t":"edificio"},{"n":"📍 ISO-PUL/b/01 Spillamento","a":"BOLOGNA","c":"pulega","lat":44.49740586,"lon":11.29307299,"t":"sensibile"},{"n":"📍 VAN-VAN/b/00 Derivazione","a":"BOLOGNA","c":"pulega","lat":44.49542539,"lon":11.31415646,"t":"sensibile"},{"n":"📍 VAN-VAN/a/00 Derivazione","a":"BOLOGNA","c":"pulega","lat":44.49542539,"lon":11.31415646,"t":"sensibile"},{"n":"📍 AND-AND/a/00 Derivazione","a":"BOLOGNA","c":"pulega","lat":44.49520976,"lon":11.31868363,"t":"sensibile"},{"n":"📍 COS-COS/a/00 Derivazione","a":"BOLOGNA","c":"pulega","lat":44.49519152,"lon":11.32399087,"t":"sensibile"},{"n":"📍 TUR-TUR/a/00 Derivazione","a":"BOLOGNA","c":"pulega","lat":44.49103453,"lon":11.32167839,"t":"sensibile"},{"n":"📍 MAL-MAL/a/00 Derivazione","a":"BOLOGNA","c":"pulega","lat":44.49016611,"lon":11.32458705,"t":"sensibile"},{"n":"📍 RIS-RIS/a/00 Spillamento","a":"BOLOGNA","c":"pulega","lat":44.4903843,"lon":11.32867025,"t":"normale"},{"n":"📍 SAR-SAR/a/00 Derivazione","a":"BOLOGNA","c":"pulega","lat":44.49010245,"lon":11.33310554,"t":"sensibile"},{"n":"📍 SIL-SIL/a/00 Derivazione","a":"BOLOGNA","c":"pulega","lat":44.48827033,"lon":11.33469314,"t":"sensibile"},{"n":"📍 AZE-AZE/a/00 Spillamento","a":"BOLOGNA","c":"pulega","lat":44.48733524,"lon":11.33756197,"t":"sensibile"},{"n":"📍 MUR-MUR/a/00 Spillamento","a":"BOLOGNA","c":"pulega","lat":44.48635654,"lon":11.34172853,"t":"sensibile"},{"n":"📍 PAN-PAN/a/00 Spillamento","a":"BOLOGNA","c":"pulega","lat":44.48632936,"lon":11.34170204,"t":"sensibile"},{"n":"📍 ORI-PAN/b/01 Spillamento","a":"BOLOGNA","c":"pulega","lat":44.48320171,"lon":11.35859312,"t":"sensibile"},{"n":"📍 MEZ-SST/a/02 - GAN-GAN/a/00 Spillamento","a":"BOLOGNA","c":"pulega","lat":44.48299039,"lon":11.3586256,"t":"sensibile"},{"n":"📍 MUR-MUR/a/00 Derivazione","a":"BOLOGNA","c":"pulega","lat":44.47897824,"lon":11.36508498,"t":"normale"},{"n":"📍 LD1/BO-RM/G1/5a-GIG-GIG/a/00 Spillamento","a":"BOLOGNA","c":"pulega","lat":44.475736,"lon":11.3672623,"t":"sensibile"},{"n":"📍 BEE-MUR/a/01 Spillamento","a":"BOLOGNA","c":"pulega","lat":44.46446285,"lon":11.37005756,"t":"sensibile"},{"n":"📍 PON-PON/a/00 Derivazione","a":"BOLOGNA","c":"pulega","lat":44.46584212,"lon":11.37442041,"t":"sensibile"},{"n":"📍 MAR-MAR/a/00 Derivazione","a":"BOLOGNA","c":"pulega","lat":44.46711625,"lon":11.37657,"t":"sensibile"},{"n":"📍 FOS-MAG/a/01 - ROM-ROM/a/00 Diritto","a":"BOLOGNA","c":"pulega","lat":44.47072394,"lon":11.39027624,"t":"sensibile"},{"n":"📍 BEL-BEL/b/00 Spillamento","a":"BOLOGNA","c":"pulega","lat":44.46678786,"lon":11.39641895,"t":"sensibile"},{"n":"📍 FOS-MAG/a/02 - BEL-BEL/a/00 Spillamento","a":"BOLOGNA","c":"pulega","lat":44.46678786,"lon":11.39641895,"t":"sensibile"},{"n":"📍 CAN-CAN/a/00 Derivazione","a":"SAN LAZZARO DI SAVENA","c":"pulega","lat":44.47255338,"lon":11.4017313,"t":"sensibile"},{"n":"📍 LD_MIC-PUL/EDT/8-ARD-ARD/a/00 Diritto","a":"SAN LAZZARO DI SAVENA","c":"pulega","lat":44.4630622,"lon":11.40594682,"t":"sensibile"},{"n":"📍 FOS-REM/a/01-POG-POG/a/00 Spillamento","a":"SAN LAZZARO DI SAVENA","c":"pulega","lat":44.46386167,"lon":11.41280772,"t":"sensibile"},{"n":"📍 IND-VIG/a/01 Spillamento","a":"SAN LAZZARO DI SAVENA","c":"pulega","lat":44.46206595,"lon":11.42519737,"t":"sensibile"},{"n":"📍 IND-VIG/a/02 Spillamento","a":"SAN LAZZARO DI SAVENA","c":"pulega","lat":44.462838,"lon":11.42413369,"t":"sensibile"},{"n":"📍 GIO-GIO/b/00 Spillamento","a":"BOLOGNA","c":"pulega","lat":44.49628422,"lon":11.28919432,"t":"sensibile"},{"n":"📍 GIO-GIO/a/00 Spillamento","a":"BOLOGNA","c":"pulega","lat":44.49628422,"lon":11.28919432,"t":"sensibile"},{"n":"📍 ARG-ARG/b/00 Derivazione","a":"BOLOGNA","c":"pulega","lat":44.4994699,"lon":11.29035258,"t":"sensibile"},{"n":"📍 GIO-TOG/a/01 Diritto","a":"BOLOGNA","c":"pulega","lat":44.4994699,"lon":11.29035258,"t":"normale"},{"n":"📍 GIO-TOG/a/02 Spillamento","a":"BOLOGNA","c":"pulega","lat":44.50215414,"lon":11.29115635,"t":"sensibile"},{"n":"📍 GIA-TOG/a/06 - SPE-SPE/a/00 Diritto","a":"BOLOGNA","c":"pulega","lat":44.50390326,"lon":11.29476233,"t":"normale"},{"n":"📍 GIA-TOG/a/05 Spillamento","a":"BOLOGNA","c":"pulega","lat":44.50593564,"lon":11.29604762,"t":"normale"},{"n":"📍 DEC-DEC/a/00 Spillamento","a":"BOLOGNA","c":"pulega","lat":44.50775596,"lon":11.29829234,"t":"normale"},{"n":"📍 GIA-TOG/a/02 Spillamento","a":"BOLOGNA","c":"pulega","lat":44.5077127,"lon":11.30508206,"t":"sensibile"},{"n":"📍 GIA-GIA/a/00 Spillamento","a":"BOLOGNA","c":"pulega","lat":44.50953178,"lon":11.30444147,"t":"normale"},{"n":"📍 GIA-OSL/a/01 Diritto","a":"BOLOGNA","c":"pulega","lat":44.50905885,"lon":11.30625316,"t":"normale"},{"n":"📍 GIA-OLS/a/02 Spillamento","a":"BOLOGNA","c":"pulega","lat":44.50792159,"lon":11.310923,"t":"normale"},{"n":"📍 OSL-OSL/a/00 Spillamento","a":"BOLOGNA","c":"pulega","lat":44.50499004,"lon":11.31156393,"t":"normale"},{"n":"📍 OSL-SAF/a/01 Diritto","a":"BOLOGNA","c":"pulega","lat":44.5037682,"lon":11.31470713,"t":"normale"},{"n":"📍 G.provvisorio Provvisorio","a":"BOLOGNA","c":"pulega","lat":44.50364413,"lon":11.31504953,"t":"normale"},{"n":"📍 OSL-SAF/a/01 Spillamento","a":"BOLOGNA","c":"pulega","lat":44.50222091,"lon":11.31898564,"t":"normale"},{"n":"📍 SAF-SAF/a/00 Spillamento","a":"BOLOGNA","c":"pulega","lat":44.501169,"lon":11.32200988,"t":"sensibile"},{"n":"📍 SAF-ZAN/a/01 Diritto","a":"BOLOGNA","c":"pulega","lat":44.50244846,"lon":11.32535628,"t":"sensibile"},{"n":"📍 SAF-ZAN/b/02 - CAS-CAS/a/00 Spillamento","a":"BOLOGNA","c":"pulega","lat":44.50247525,"lon":11.32534514,"t":"sensibile"},{"n":"📍 BOMMP002_GPga03 Spillamento","a":"BOLOGNA","c":"pulega","lat":44.5017442,"lon":11.33017405,"t":"sensibile"},{"n":"📍 BOMMP002_GP37S1 Spillamento","a":"BOLOGNA","c":"pulega","lat":44.50247914,"lon":11.33163395,"t":"normale"},{"n":"📍 BOMMP002_GP15S1 Spillamento","a":"BOLOGNA","c":"pulega","lat":44.50276933,"lon":11.33322748,"t":"sensibile"},{"n":"📍 BOMMP002_GP15S0 Spillamento","a":"BOLOGNA","c":"pulega","lat":44.50344649,"lon":11.33467155,"t":"sensibile"},{"n":"📍 ZAN-ZAN/a/00/01 Spillamento","a":"BOLOGNA","c":"pulega","lat":44.50439879,"lon":11.33511929,"t":"sensibile"},{"n":"📍 MIL-MIL/a/00 Derivazione","a":"BOLOGNA","c":"pulega","lat":44.50370194,"lon":11.33923006,"t":"sensibile"},{"n":"📍 ALG-PAL/c/01-BAR-BAR/a/00 Spillamento","a":"BOLOGNA","c":"pulega","lat":44.50496763,"lon":11.34778891,"t":"sensibile"},{"n":"📍 PAL-SDO/a/03/04-RAN-RAN/a/00 Spillamento","a":"BOLOGNA","c":"pulega","lat":44.50119015,"lon":11.35671486,"t":"sensibile"},{"n":"📍 PAL-SDO/a/03 Spillamento","a":"BOLOGNA","c":"pulega","lat":44.49968065,"lon":11.35914167,"t":"sensibile"},{"n":"📍 ROS-ROS/a/00 Diritto","a":"BOLOGNA","c":"pulega","lat":44.4987428,"lon":11.36380194,"t":"sensibile"},{"n":"📍 VIN-VIN/a/00 Spillamento","a":"BOLOGNA","c":"pulega","lat":44.49604206,"lon":11.364294,"t":"sensibile"},{"n":"📍 MAS-MAS/a/00 Diritto","a":"BOLOGNA","c":"pulega","lat":44.49244991,"lon":11.36608464,"t":"sensibile"},{"n":"📍 MAZ-MAZ/a/00 Spillamento","a":"BOLOGNA","c":"pulega","lat":44.48756872,"lon":11.36464574,"t":"sensibile"},{"n":"📍 ALB-ALB/a/00 Spillamento","a":"BOLOGNA","c":"pulega","lat":44.48835932,"lon":11.36254103,"t":"sensibile"},{"n":"📍 ORI-ORI/b/00 Diritto","a":"BOLOGNA","c":"pulega","lat":44.48702845,"lon":11.36154649,"t":"sensibile"},{"n":"📍 ALB-ALB/c/00 Spillamento","a":"BOLOGNA","c":"pulega","lat":44.48220157,"lon":11.36854567,"t":"normale"},{"n":"📍 LEN-LEN/b/00 Diritto","a":"BOLOGNA","c":"pulega","lat":44.48312354,"lon":11.38433896,"t":"sensibile"},{"n":"📍 LEN-LEN/a/00 Spillamento","a":"BOLOGNA","c":"pulega","lat":44.48310488,"lon":11.38427092,"t":"sensibile"},{"n":"📍 FSS-FSS/a/00 Spillamento","a":"BOLOGNA","c":"pulega","lat":44.48191723,"lon":11.39052871,"t":"sensibile"},{"n":"📍 DOZ-DOZ/a/00 Diritto","a":"BOLOGNA","c":"pulega","lat":44.4761429,"lon":11.39370778,"t":"sensibile"},{"n":"📍 BO-MP004 Ga1 Derivazione","a":"SAN LAZZARO DI SAVENA","c":"pulega","lat":44.47272756,"lon":11.40272452,"t":"sensibile"},{"n":"📍 RIM-RIM/a/00 Diritto","a":"SAN LAZZARO DI SAVENA","c":"pulega","lat":44.47113227,"lon":11.40700554,"t":"sensibile"},{"n":"📍 CAS-CAS/a/00 Derivazione","a":"SAN LAZZARO DI SAVENA","c":"pulega","lat":44.4703733,"lon":11.40983802,"t":"sensibile"},{"n":"📍 GIO-RIM/a/03 Spillamento","a":"SAN LAZZARO DI SAVENA","c":"pulega","lat":44.47443299,"lon":11.41448027,"t":"sensibile"},{"n":"📍 GIO-RIM/a/01 Spillamento","a":"SAN LAZZARO DI SAVENA","c":"pulega","lat":44.47119469,"lon":11.41879868,"t":"sensibile"},{"n":"📍 IND-IND/a/00 Diritto","a":"SAN LAZZARO DI SAVENA","c":"pulega","lat":44.46357138,"lon":11.42680566,"t":"sensibile"},{"n":"🏢 TIT-BO-CASTELMAGGIORE","a":"VIA GIACOMO MATTEOTTI, 53","c":"castelmaggiore","lat":44.57336993,"lon":11.36800958,"t":"edificio"},{"n":"📍 MAT-MAT/a/00 Diritto","a":"CASTEL MAGGIORE","c":"castelmaggiore","lat":44.57336993,"lon":11.36800958,"t":"normale"},{"n":"📍 GRA-GRA/b/00 Derivazione","a":"CASTEL MAGGIORE","c":"castelmaggiore","lat":44.57519403,"lon":11.36398052,"t":"normale"},{"n":"📍 CHI-CHI/a/00 Derivazione","a":"CASTEL MAGGIORE","c":"castelmaggiore","lat":44.57369948,"lon":11.36271844,"t":"normale"},{"n":"📍 VER-VER/a/00 Diritto","a":"CASTEL MAGGIORE","c":"castelmaggiore","lat":44.56925549,"lon":11.36038597,"t":"normale"},{"n":"📍 GAL-VER/a/02 Spillamento","a":"CASTEL MAGGIORE","c":"castelmaggiore","lat":44.56672256,"lon":11.36025705,"t":"normale"},{"n":"📍 GAL-GAL/a/00 Spillamento","a":"CASTEL MAGGIORE","c":"castelmaggiore","lat":44.55837598,"lon":11.35533516,"t":"normale"},{"n":"📍 BEN-BEN/a/00 Diritto","a":"CASTEL MAGGIORE","c":"castelmaggiore","lat":44.55436975,"lon":11.35124835,"t":"normale"},{"n":"📍 MIC-PUL/EDT/04 - TUS-TUS/b/00 Diritto","a":"BOLOGNA","c":"castelmaggiore","lat":44.53632623,"lon":11.36033304,"t":"normale"},{"n":"📍 BEN-TUS/a/01-BRI-BRI/a/00 Spillamento","a":"BOLOGNA","c":"castelmaggiore","lat":44.53603916,"lon":11.36015341,"t":"normale"},{"n":"📍 GOM-GOM/a/00 Spillamento","a":"BOLOGNA","c":"castelmaggiore","lat":44.53464226,"lon":11.36762302,"t":"normale"},{"n":"📍 CAD-TUS/b/01 Diritto","a":"BOLOGNA","c":"castelmaggiore","lat":44.53069372,"lon":11.37873222,"t":"normale"},{"n":"📍 CAD-TUS/a/01 Diritto","a":"BOLOGNA","c":"castelmaggiore","lat":44.53069372,"lon":11.37873222,"t":"normale"},{"n":"📍 LD1/BO-VE/G1/7a-CAD-CAD/a/00 Spillamento","a":"BOLOGNA","c":"castelmaggiore","lat":44.52884047,"lon":11.38394261,"t":"normale"},{"n":"📍 CAD-CAD/b/00 Derivazione","a":"GRANAROLO DELL'EMILIA","c":"castelmaggiore","lat":44.54724667,"lon":11.3979092,"t":"normale"},{"n":"📍 LD2/BO-VE/G1/8 Spillamento","a":"GRANAROLO DELL'EMILIA","c":"castelmaggiore","lat":44.54918043,"lon":11.3926589,"t":"normale"},{"n":"📍 G. DIESELJET Derivazione","a":"GRANAROLO DELL'EMILIA","c":"castelmaggiore","lat":44.54814343,"lon":11.39484954,"t":"normale"},{"n":"📍 G.PTR155/1 bis Derivazione","a":"GRANAROLO DELL'EMILIA","c":"castelmaggiore","lat":44.53427825,"lon":11.41138473,"t":"normale"},{"n":"📍 G.FIBRECONNECT Derivazione","a":"GRANAROLO DELL'EMILIA","c":"castelmaggiore","lat":44.53399533,"lon":11.41124744,"t":"normale"}];
+        
+        let data = [...originalData];
+        let activeFilters = new Set();
+
+        function exportData() {
+            const query = document.getElementById('search').value.toLowerCase();
+            const filteredData = data.filter(d => {
+                const matchesFilter = activeFilters.size === 0 || activeFilters.has(d.c);
+                const matchesSearch = query === '' || 
+                    d.n.toLowerCase().includes(query) || 
+                    d.a.toLowerCase().includes(query);
+                return matchesFilter && matchesSearch;
+            });
+
+            let csv = 'Nome,Indirizzo,Circuito,Latitudine,Longitudine,Tipo,Fonte\n';
+            filteredData.forEach(d => {
+                csv += `"${d.n}","${d.a}","${d.c}",${d.lat},${d.lon},"${d.t}","${d.source || 'originale'}"\n`;
+            });
+
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `circuiti_ottici_${new Date().toISOString().split('T')[0]}.csv`;
+            link.click();
+        }
+
+        function render() {
+            const query = document.getElementById('search').value.toLowerCase();
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '';
+            let visibleCount = 0;
+
+            data.forEach((d, idx) => {
+                const matchesFilter = activeFilters.size === 0 || activeFilters.has(d.c);
+                const matchesSearch = query === '' || 
+                    d.n.toLowerCase().includes(query) || 
+                    d.a.toLowerCase().includes(query);
+
+                if (matchesFilter && matchesSearch) {
+                    const card = document.createElement('div');
+                    card.className = `card ${d.t === 'sensibile' ? 'sensibile' : d.t === 'notturni' ? 'notturni' : d.t === 'edificio' ? 'edificio' : ''}`;
+                    
+                    const badgeMap = {
+                        'sensibile': ['🔴 Sensibile',  'badge-sensibile'],
+                        'notturni':  ['🌙 Notturni',   'badge-notturni'],
+                        'edificio':  ['🏢 Edificio',   'badge-edificio'],
+                        'normale':   ['📍 Normale',    'badge-normale'],
+                    };
+                    const [badgeLabel, badgeClass] = badgeMap[d.t] || ['📍 Normale', 'badge-normale'];
+                    const mapsUrl = `https://www.google.com/maps?q=${d.lat},${d.lon}&z=17`;
+                    const navUrl  = `https://www.google.com/maps/dir/?api=1&destination=${d.lat},${d.lon}&travelmode=driving`;
+
+                    const cardId = 'c_'+idx;
+                    const fotoInputId = 'fi_'+idx;
+                    const k = 'g_'+d.c+'_'+d.lat+'_'+d.lon;
+                    const sv = JSON.parse(localStorage.getItem(k)||'{}');
+                    const statoOpts = [
+                        ['','— Seleziona stato —'],
+                        ['da_fare','🔴 Da fare'],
+                        ['in_corso','🟡 In corso'],
+                        ['fatto','🟢 Fatto'],
+                        ['sospeso','⚪ Sospeso']
+                    ].map(o=>`<option value="${o[0]}" ${sv.stato===o[0]?'selected':''}>${o[1]}</option>`).join('');
+
+                    const caviRows = (sv.cavi||[]).map(c=>
+                        `<tr>
+                            <td><input type="text" value="${c.nome||''}" placeholder="es. FRA-MAS"></td>
+                            <td><input type="text" value="${c.fibraA||''}" placeholder="fibra"></td>
+                            <td><input type="text" value="${c.fibraB||''}" placeholder="fibra"></td>
+                            <td><input type="text" value="${c.nome2||''}" placeholder="es. FRA-TUR"></td>
+                            <td><button class="btn-dr" onclick="this.closest('tr').remove()">🗑</button></td>
+                        </tr>`
+                    ).join('');
+
+                    const caviAttRows = (sv.caviAtt||[]).map(c=>
+                        `<tr>
+                            <td><input type="text" value="${c.id||''}" placeholder="ID"></td>
+                            <td><input type="text" value="${c.nome||''}" placeholder="Nome cavo"></td>
+                            <td><input type="text" value="${c.pot||''}" placeholder="es. 144F"></td>
+                            <td><button class="btn-dr" onclick="this.closest('tr').remove()">🗑</button></td>
+                        </tr>`
+                    ).join('');
+
+                    const fotoImgs = (sv.foto||[]).map(src=>
+                        `<div class="fwrap"><img class="fimg" src="${src}"><button class="fdel" onclick="this.parentElement.remove()">✕</button></div>`
+                    ).join('');
+
+                    card.innerHTML = `
+                        <span class="badge ${badgeClass}">${badgeLabel}</span>
+                        <div class="card-title">${d.n}</div>
+                        <div class="card-address">${d.a}</div>
+                        <div class="card-coords">📌 ${d.lat.toFixed(5)}, ${d.lon.toFixed(5)}</div>
+                        <div class="card-actions">
+                            <button class="card-btn card-btn-map" onclick="event.stopPropagation(); window.open('${mapsUrl}','_blank')">🗺️ Mappa</button>
+                            <button class="card-btn card-btn-nav" onclick="event.stopPropagation(); window.open('${navUrl}','_blank')">🧭 Naviga</button>
+                            <button class="card-btn card-btn-scheda" onclick="event.stopPropagation(); toggleScheda('${cardId}')">📋 Scheda</button>
+                        </div>
+                        <div class="scheda-expand" id="${cardId}" onclick="event.stopPropagation()">
+                            <div class="se-row">
+                                <div class="se-label">🔧 Stato Lavori</div>
+                                <select class="se-select" id="st_${cardId}">${statoOpts}</select>
+                            </div>
+                            <div class="se-row">
+                                <div class="se-label">📥 Report Fibre</div>
+                                <div class="excel-btns">
+                                    <button class="btn-xlsx-imp" onclick="event.stopPropagation(); document.getElementById('xl_${cardId}').click()" style="flex:1">📁 File locale</button>
+                                    <button class="btn-xlsx-imp" onclick="event.stopPropagation(); importaDaDrive('cv_${cardId}','${cardId}')" style="flex:1">☁️ Da Drive</button>
+                                    <input type="file" id="xl_${cardId}" accept=".xlsx,.xls" style="display:none" onchange="xlsxImporta(event,'cv_${cardId}')">
+                                </div>
+                                <div style="display:flex; align-items:center; gap:6px; margin-bottom:6px;">
+                                    <input type="text" id="drivelink_cv_${cardId}" placeholder="🔗 Link Google Drive (opzionale)" value="${sv.driveLinkCV||''}" onclick="event.stopPropagation()"
+                                        style="flex:1; padding:7px 10px; border:1.5px solid #c5cae9; border-radius:20px; font-size:11px; outline:none; background:#f5f6f8;">
+                                </div>
+                                <div style="display:flex; align-items:center; gap:6px; margin-bottom:6px;">
+                                    <input type="text" id="filt_${cardId}" placeholder="🔍 Filtra per cavo..." onclick="event.stopPropagation()"
+                                        oninput="filtraCavi('cv_${cardId}', this.value)"
+                                        style="flex:1; padding:7px 10px; border:1.5px solid #c5cae9; border-radius:20px; font-size:12px; outline:none; background:#f5f6f8;">
+                                    <button onclick="event.stopPropagation(); document.getElementById('filt_${cardId}').value=''; filtraCavi('cv_${cardId}','')"
+                                        style="padding:6px 10px; background:#f5f6f8; border:1.5px solid #e2e6f0; border-radius:20px; font-size:12px; cursor:pointer; color:#888;">✕</button>
+                                </div>
+                                <table class="ctbl" id="tbl_${cardId}" style="${caviRows ? '' : 'display:none'}">
+                                    <thead><tr><th>Cavo</th><th>Fibre</th><th>Fibra</th><th>Cavo</th><th>Stato</th><th>Data</th></tr></thead>
+                                    <tbody id="cv_${cardId}">${caviRows}</tbody>
+                                </table>
+                            </div>
+                            <div class="se-row">
+                                <div class="se-label">🔌 Cavi Attestati</div>
+                                <div class="excel-btns">
+                                    <button class="btn-xlsx-imp" onclick="event.stopPropagation(); document.getElementById('ca_xl_${cardId}').click()" style="flex:1">📁 File locale</button>
+                                    <button class="btn-xlsx-imp" onclick="event.stopPropagation(); importaDaDrive('ca_${cardId}','${cardId}')" style="flex:1">☁️ Da Drive</button>
+                                    <input type="file" id="ca_xl_${cardId}" accept=".xlsx,.xls" style="display:none" onchange="caXlsxImporta(event,'ca_${cardId}')">
+                                </div>
+                                <div style="display:flex; align-items:center; gap:6px; margin-bottom:6px;">
+                                    <input type="text" id="drivelink_ca_${cardId}" placeholder="🔗 Link Google Drive (opzionale)" value="${sv.driveLinkCA||''}" onclick="event.stopPropagation()"
+                                        style="flex:1; padding:7px 10px; border:1.5px solid #c5cae9; border-radius:20px; font-size:11px; outline:none; background:#f5f6f8;">
+                                </div>
+                                <table class="ctbl" id="ca_tbl_${cardId}" style="${caviAttRows ? '' : 'display:none'}">
+                                    <thead><tr><th>ID</th><th>Nome Cavo</th><th>Potenzialità</th><th></th></tr></thead>
+                                    <tbody id="ca_${cardId}">${caviAttRows}</tbody>
+                                </table>
+                                <button class="btn-ar" onclick="event.stopPropagation(); caAddRow('ca_${cardId}')">+ Aggiungi cavo</button>
+                            </div>
+                            <div class="se-row">               </div>
+                            <div class="se-row">
+                                <div class="se-label">📝 Note Operative</div>
+                                <textarea class="se-textarea" id="nt_${cardId}" placeholder="Note tecniche, osservazioni...">${sv.note||''}</textarea>
+                            </div>
+                            <div class="se-row">
+                                <div class="se-label">📷 Foto</div>
+                                <div class="fgrid" id="fg_${cardId}">${fotoImgs}</div>
+                                <button class="btn-af" onclick="event.stopPropagation(); document.getElementById('${fotoInputId}').click()">📷 Aggiungi foto</button>
+                                <input type="file" id="${fotoInputId}" accept="image/*" multiple style="display:none"
+                                    onchange="seAddFoto(event,'fg_${cardId}')">
+                            </div>
+                            <div class="se-actions">
+                                <button class="btn-sv" onclick="event.stopPropagation(); seSalva('${cardId}','${k}')">💾 Salva dati</button>
+                            </div>
+                            <div class="sv-ok" id="ok_${cardId}">✅ Dati salvati!</div>
+                        </div>
+                    `;
+                    
+                    card.onclick = () => window.open(`https://www.google.com/maps/search/?api=1&query=${d.lat},${d.lon}`, '_blank');
+                    resultsDiv.appendChild(card);
+                    visibleCount++;
+                }
+            });
+
+            if (visibleCount === 0) {
+                resultsDiv.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">🔍</div>
+                        <h3>Nessun risultato trovato</h3>
+                        <p>Prova a modificare i filtri o la ricerca</p>
+                    </div>
+                `;
+            }
+
+            document.getElementById('visible').textContent = visibleCount;
+            document.getElementById('total').textContent = originalData.length;
+        }
+
+        function toggleFilter(circuit) {
+            if (activeFilters.has(circuit)) {
+                activeFilters.delete(circuit);
+            } else {
+                activeFilters.add(circuit);
+            }
+            
+            document.querySelectorAll(`[data-c="${circuit}"]`).forEach(btn => {
+                btn.classList.toggle('active');
+            });
+            
+            render();
+        }
+
+        function toggleAll() {
+            if (activeFilters.size === 0) {
+                // Attiva tutti i filtri originali (escluso KML)
+                const circuits = new Set(originalData.map(d => d.c));
+                circuits.forEach(c => activeFilters.add(c));
+                document.querySelectorAll('.btn[data-c]').forEach(btn => btn.classList.add('active'));
+            } else {
+                activeFilters.clear();
+                document.querySelectorAll('.btn').forEach(btn => btn.classList.remove('active'));
+            }
+            render();
+        }
+
+        function openFirstMap() {
+            const visibleCards = document.querySelectorAll('.card');
+            if (visibleCards.length > 0) {
+                visibleCards[0].click();
+            }
+        }
+
+        
+        function addCountsToBtns() {
+            // Conta i record per ogni circuito
+            const counts = {};
+            originalData.forEach(d => {
+                counts[d.c] = (counts[d.c] || 0) + 1;
+            });
+
+            // Aggiorna il testo di ogni tasto con il contatore
+            document.querySelectorAll('.btn[data-c]').forEach(btn => {
+                const c = btn.dataset.c;
+                const n = counts[c] || 0;
+                // Evita di aggiungere più volte
+                if (!btn.querySelector('.btn-count')) {
+                    const badge = document.createElement('span');
+                    badge.className = 'btn-count';
+                    badge.textContent = n;
+                    btn.appendChild(badge);
+                }
+            });
+        }
+
+        // Event listeners
+        document.getElementById('search').addEventListener('input', render);
+        document.querySelectorAll('.btn[data-c]').forEach(btn => {
+            btn.addEventListener('click', () => toggleFilter(btn.dataset.c));
+        });
+
+        // Render iniziale
+        render();
+        addCountsToBtns();
+
+                function cercaCoord() {
+            const input = document.getElementById('coordInput').value.trim();
+            const resultDiv = document.getElementById('coordResult');
+            if (!input) return;
+
+            resultDiv.innerHTML = '⏳ Ricerca in corso...';
+            resultDiv.style.display = 'block';
+
+            const coordMatch = input.match(/^(-?\d+\.?\d*)[,\s]+(-?\d+\.?\d*)$/);
+
+            if (coordMatch) {
+                // ── INPUT COORDINATE ──────────────────────────────
+                const lat = parseFloat(coordMatch[1]);
+                const lng = parseFloat(coordMatch[2]);
+
+                // Giunto più vicino nel DB
+                let minDist = Infinity, nearest = null;
+                originalData.forEach(d => {
+                    const dist = Math.sqrt(Math.pow(d.lat - lat, 2) + Math.pow(d.lon - lng, 2));
+                    if (dist < minDist) { minDist = dist; nearest = d; }
+                });
+
+                const mapsUrl = `https://www.google.com/maps?q=${lat},${lng}&z=17`;
+                const navUrl  = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}&travelmode=driving`;
+
+                let html = `📍 <b>Coordinate:</b> ${lat}, ${lng}<br>`;
+                if (nearest && minDist < 0.005) {
+                    html += `📡 Giunto più vicino: <b>${nearest.n}</b> — ${nearest.a}<br>`;
+                }
+                html += `<a href="${mapsUrl}" target="_blank">🗺️ Apri su Google Maps</a> &nbsp;|&nbsp; `;
+                html += `<a href="${navUrl}" target="_blank">🧭 Naviga qui</a>`;
+                resultDiv.innerHTML = html;
+                resultDiv.style.display = 'block';
+
+            } else {
+                // ── INPUT INDIRIZZO: cerca SEMPRE su DB + Nominatim ──
+                const q = input.toLowerCase();
+
+                // Risultati nel database interno
+                const dbFound = originalData.filter(d =>
+                    d.a.toLowerCase().includes(q) || d.n.toLowerCase().includes(q)
+                );
+
+                // Cerca su Nominatim in parallelo
+                const query = input.includes('bologna') ? input : input + ', Bologna';
+                const osmUrl = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=3&addressdetails=1`;
+
+                fetch(osmUrl)
+                    .then(r => r.json())
+                    .then(osmResults => {
+                        let html = '';
+
+                        // ── Risultati database ───────────────────
+                        if (dbFound.length > 0) {
+                            html += `<b>📂 Nel database (${dbFound.length} trovati):</b><br>`;
+                            dbFound.slice(0, 3).forEach(f => {
+                                const mu = `https://www.google.com/maps?q=${f.lat},${f.lon}&z=17`;
+                                const nu = `https://www.google.com/maps/dir/?api=1&destination=${f.lat},${f.lon}&travelmode=driving`;
+                                html += `&nbsp;• <b>${f.n}</b> — ${f.a} `;
+                                html += `<a href="${mu}" target="_blank">🗺️</a> `;
+                                html += `<a href="${nu}" target="_blank">🧭</a><br>`;
+                            });
+                            if (dbFound.length > 3) html += `&nbsp;&nbsp;<i>...e altri ${dbFound.length - 3}</i><br>`;
+                            html += '<br>';
+                        } else {
+                            html += `<b>📂 Database:</b> nessun risultato<br><br>`;
+                        }
+
+                        // ── Risultati Google Maps / Nominatim ────
+                        if (osmResults && osmResults.length > 0) {
+                            html += `<b>🌍 Su Google Maps (${osmResults.length} trovati):</b><br>`;
+                            osmResults.forEach(r => {
+                                const lat = parseFloat(r.lat), lon = parseFloat(r.lon);
+                                const mu = `https://www.google.com/maps?q=${lat},${lon}&z=17`;
+                                const nu = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lon}&travelmode=driving`;
+                                const nome = r.display_name.split(',').slice(0,2).join(',');
+                                html += `&nbsp;• <b>${nome}</b> `;
+                                html += `<a href="${mu}" target="_blank">🗺️ Apri</a> `;
+                                html += `<a href="${nu}" target="_blank">🧭 Naviga</a><br>`;
+                            });
+                        } else {
+                            html += `<b>🌍 Google Maps:</b> nessun risultato per "<i>${input}</i>"`;
+                        }
+
+                        resultDiv.innerHTML = html;
+                        resultDiv.style.display = 'block';
+                    })
+                    .catch(() => {
+                        // Se Nominatim fallisce, mostra almeno i risultati DB
+                        let html = '';
+                        if (dbFound.length > 0) {
+                            html += `<b>📂 Nel database (${dbFound.length}):</b><br>`;
+                            dbFound.slice(0, 3).forEach(f => {
+                                const mu = `https://www.google.com/maps?q=${f.lat},${f.lon}&z=17`;
+                                const nu = `https://www.google.com/maps/dir/?api=1&destination=${f.lat},${f.lon}&travelmode=driving`;
+                                html += `&nbsp;• <b>${f.n}</b> — ${f.a} `;
+                                html += `<a href="${mu}" target="_blank">🗺️</a> `;
+                                html += `<a href="${nu}" target="_blank">🧭</a><br>`;
+                            });
+                        } else {
+                            html += '❌ Nessun risultato trovato.';
+                        }
+                        html += '<br>⚠️ Ricerca Maps non disponibile (controlla connessione)';
+                        resultDiv.innerHTML = html;
+                        resultDiv.style.display = 'block';
+                    });
+            }
+        }
+
+        // Cerca anche premendo Invio
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('coordInput').addEventListener('keydown', e => {
+                if (e.key === 'Enter') cercaCoord();
+            });
+        });
+
+        // ── SCHEDA ESPANDIBILE ─────────────────────────────────
+        function toggleScheda(id) {
+            var el = document.getElementById(id);
+            if (!el) return;
+            var isOpen = el.style.display === 'block';
+            el.style.display = isOpen ? 'none' : 'block';
+        }
+
+        function seAddCavo(tbodyId, data) {
+            var tbody = document.getElementById(tbodyId);
+            if (!tbody) return;
+            var tr = document.createElement('tr');
+            tr.innerHTML =
+                '<td><input type="text" placeholder="ID" style="width:50px" value="' + (data && data.idcavo || '') + '"></td>' +
+                '<td><input type="text" placeholder="Nome cavo A" value="' + (data && data.nome || '') + '"></td>' +
+                '<td><input type="text" placeholder="Fibra" style="width:46px" value="' + (data && data.fibraA || '') + '"></td>' +
+                '<td><input type="text" placeholder="Fibra" style="width:46px" value="' + (data && data.fibraB || '') + '"></td>' +
+                '<td><input type="text" placeholder="Nome cavo B" value="' + (data && data.nome2 || '') + '"></td>' +
+                '<td><button class="btn-dr" onclick="this.closest(\'tr\').remove()">🗑</button></td>';
+            tbody.appendChild(tr);
+        }
+
+        function seAddFoto(e, gridId) {
+            var grid = document.getElementById(gridId);
+            if (!grid) return;
+            Array.from(e.target.files).forEach(function(f) {
+                var r = new FileReader();
+                r.onload = function(ev) {
+                    var w = document.createElement('div');
+                    w.className = 'fwrap';
+                    w.innerHTML = '<img class="fimg" src="' + ev.target.result + '"><button class="fdel" onclick="this.parentElement.remove()">✕</button>';
+                    grid.appendChild(w);
+                };
+                r.readAsDataURL(f);
+            });
+            e.target.value = '';
+        }
+
+        function seSalva(cardId, k) {
+            var cavi = [];
+            document.querySelectorAll('#cv_' + cardId + ' tr').forEach(function(tr) {
+                var inp = tr.querySelectorAll('input');
+                if (inp[0] && inp[0].value.trim()) {
+                    cavi.push({
+                        nome:   inp[0].value,
+                        fibraA: inp[1] ? inp[1].value : '',
+                        fibraB: inp[2] ? inp[2].value : '',
+                        nome2:  inp[3] ? inp[3].value : ''
+                    });
+                }
+            });
+            var caviAtt = [];
+            document.querySelectorAll('#ca_' + cardId + ' tr').forEach(function(tr) {
+                var inp = tr.querySelectorAll('input');
+                if (inp[0] && inp[0].value.trim()) {
+                    caviAtt.push({
+                        id:   inp[0].value,
+                        nome: inp[1] ? inp[1].value : '',
+                        pot:  inp[2] ? inp[2].value : ''
+                    });
+                }
+            });
+            var dati = {
+                stato:      (document.getElementById('st_' + cardId) || {}).value || '',
+                cavi:       cavi,
+                caviAtt:    caviAtt,
+                driveLinkCV: (document.getElementById('drivelink_cv_' + cardId) || {}).value || '',
+                driveLinkCA: (document.getElementById('drivelink_ca_' + cardId) || {}).value || '',
+                nfc:        window['nfc_pending_' + cardId] || (JSON.parse(localStorage.getItem(k)||'{}')).nfc || '',
+                note:       (document.getElementById('nt_' + cardId) || {}).value || '',
+                foto:       Array.from(document.querySelectorAll('#fg_' + cardId + ' img')).map(function(i) { return i.src; })
+            };
+            localStorage.setItem(k, JSON.stringify(dati));
+            var ok = document.getElementById('ok_' + cardId);
+            if (ok) { ok.style.display = 'block'; setTimeout(function() { ok.style.display = 'none'; }, 2500); }
+        }
+
+        // ── BARCODE SCANNER ────────────────────────────────────
+        var _scanStream = null;
+
+        function scanBarcode(cardId) {
+            var btn = document.querySelector('#nfc_' + cardId + ' .btn-nfc');
+            var res = document.getElementById('nfcres_' + cardId);
+
+            // Se già attivo, ferma
+            if (_scanStream) {
+                stopScan(cardId);
+                return;
+            }
+
+            // Controlla supporto BarcodeDetector
+            if (!('BarcodeDetector' in window)) {
+                // Fallback: input manuale o file immagine
+                res.innerHTML = '<div class="nfc-waiting">⚠️ Scanner non supportato su questo browser.<br>'
+                    + 'Inserisci il codice manualmente:</div>'
+                    + '<div style="display:flex;gap:6px;margin-top:6px;">'
+                    + '<input id="manual_' + cardId + '" type="text" placeholder="es. 04F78B6AF31E90" '
+                    + 'style="flex:1;padding:8px;border:1.5px solid #e2e6f0;border-radius:8px;font-size:12px;outline:none;">'
+                    + '<button onclick="event.stopPropagation(); salvaManuale(\'' + cardId + '\')" '
+                    + 'style="padding:8px 12px;background:#667eea;color:white;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;">💾</button>'
+                    + '</div>';
+                return;
+            }
+
+            // Avvia fotocamera
+            btn.textContent = '⏹ Ferma scansione';
+            btn.classList.add('attivo');
+            res.innerHTML = '<video id="scan_video_' + cardId + '" style="width:100%;border-radius:10px;margin-top:6px;" autoplay playsinline></video>'
+                + '<div class="nfc-waiting" id="scan_status_' + cardId + '">📷 Inquadra il barcode...</div>';
+
+            navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
+            .then(function(stream) {
+                _scanStream = stream;
+                var video = document.getElementById('scan_video_' + cardId);
+                video.srcObject = stream;
+                video.play();
+
+                var detector = new BarcodeDetector({ formats: ['code_128','code_39','ean_13','ean_8','qr_code','data_matrix'] });
+
+                var scanInterval = setInterval(function() {
+                    if (!_scanStream) { clearInterval(scanInterval); return; }
+                    detector.detect(video).then(function(barcodes) {
+                        if (barcodes.length > 0) {
+                            clearInterval(scanInterval);
+                            var codice = barcodes[0].rawValue;
+                            stopScan(cardId);
+                            // Salva risultato
+                            window['nfc_pending_' + cardId] = codice;
+                            res.innerHTML = '<div class="nfc-tag-new">🏷️ <b>Codice letto:</b> ' + codice + '</div>'
+                                + '<button onclick="event.stopPropagation(); seSalvaConNFC(\'' + cardId + '\')" '
+                                + 'style="width:100%;margin-top:6px;padding:8px;background:#2e7d32;color:white;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;">'
+                                + '💾 Salva nella scheda</button>';
+                        }
+                    }).catch(function() {});
+                }, 300);
+            })
+            .catch(function(err) {
+                res.innerHTML = '<div class="nfc-waiting">❌ Fotocamera non accessibile: ' + err.message + '</div>';
+                btn.textContent = '📷 Scansiona Barcode';
+                btn.classList.remove('attivo');
+            });
+        }
+
+        function stopScan(cardId) {
+            if (_scanStream) {
+                _scanStream.getTracks().forEach(function(t) { t.stop(); });
+                _scanStream = null;
+            }
+            var btn = document.querySelector('#nfc_' + cardId + ' .btn-nfc');
+            if (btn) { btn.textContent = '📷 Scansiona Barcode'; btn.classList.remove('attivo'); }
+            var video = document.getElementById('scan_video_' + cardId);
+            if (video) video.remove();
+        }
+
+        function salvaManuale(cardId) {
+            var inp = document.getElementById('manual_' + cardId);
+            if (!inp || !inp.value.trim()) return;
+            var codice = inp.value.trim().toUpperCase();
+            window['nfc_pending_' + cardId] = codice;
+            var res = document.getElementById('nfcres_' + cardId);
+            res.innerHTML = '<div class="nfc-tag-new">🏷️ <b>Codice:</b> ' + codice + '</div>'
+                + '<button onclick="event.stopPropagation(); seSalvaConNFC(\'' + cardId + '\')" '
+                + 'style="width:100%;margin-top:6px;padding:8px;background:#2e7d32;color:white;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;">'
+                + '💾 Salva nella scheda</button>';
+        }
+
+        function seSalvaConNFC(cardId) {
+            var scheda = document.getElementById(cardId);
+            if (!scheda) return;
+            var btnSv = scheda.querySelector('.btn-sv');
+            if (btnSv) btnSv.click();
+        }
+
+        function cancellaTag(cardId) {
+            if (!confirm('Cancellare il tag salvato?')) return;
+            // Rimuovo nfc dal localStorage
+            var scheda = document.getElementById(cardId);
+            if (!scheda) return;
+            var btnSv = scheda.querySelector('.btn-sv');
+            // Trovo la chiave k dal tasto salva
+            var k = btnSv ? btnSv.getAttribute('onclick').match(/'([^']+)'\)$/)?.[1] : null;
+            if (k) {
+                var saved = JSON.parse(localStorage.getItem(k) || '{}');
+                delete saved.nfc;
+                localStorage.setItem(k, JSON.stringify(saved));
+            }
+            // Pulisco anche la variabile pending
+            window['nfc_pending_' + cardId] = '';
+            // Aggiorno il div
+            var res = document.getElementById('nfcres_' + cardId);
+            if (res) res.innerHTML = '';
+        }
+
+        function caXlsxImporta(e, tbodyId) {
+            var file = e.target.files[0];
+            if (!file) return;
+            var reader = new FileReader();
+            reader.onload = function(ev) {
+                try {
+                    var wb = XLSX.read(ev.target.result, { type: 'binary' });
+                    var ws = wb.Sheets[wb.SheetNames[0]];
+                    var rows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
+                    var tbody = document.getElementById(tbodyId);
+                    if (!tbody) return;
+                    // Svuota prima
+                    tbody.innerHTML = '';
+                    // Salta intestazione
+                    var start = 0;
+                    if (rows[0] && typeof rows[0][0] === 'string' && isNaN(rows[0][0])) start = 1;
+                    // Mostra tabella
+                    var tblId = 'ca_tbl_' + tbodyId.replace('ca_','');
+                    var tbl = document.getElementById(tblId);
+                    if (tbl) tbl.style.display = '';
+                    var count = 0;
+                    rows.slice(start).forEach(function(row) {
+                        if (!row[0] && !row[1] && !row[2]) return;
+                        var tr = document.createElement('tr');
+                        tr.innerHTML =
+                            '<td><input type="text" value="' + String(row[0]||'') + '" style="text-align:center;width:100%"></td>' +
+                            '<td><input type="text" value="' + String(row[1]||'') + '" style="text-align:center;width:100%"></td>' +
+                            '<td><input type="text" value="' + String(row[2]||'') + '" style="text-align:center;width:100%"></td>' +
+                            '<td><button class="btn-dr" onclick="this.closest(\'tr\').remove()">🗑</button></td>';
+                        tbody.appendChild(tr);
+                        count++;
+                    });
+                    alert('✅ Importati ' + count + ' cavi!');
+                } catch(err) {
+                    alert('❌ Errore: ' + err.message);
+                }
+            };
+            reader.readAsBinaryString(file);
+            e.target.value = '';
+        }
+
+        // ── IMPORT DA GOOGLE DRIVE ─────────────────────────────
+        function importaDaDrive(tbodyId, cardId) {
+            var linkInput = document.getElementById('drivelink_' + tbodyId);
+            if (!linkInput || !linkInput.value.trim()) {
+                alert('⚠️ Inserisci il link Google Drive prima di importare!');
+                return;
+            }
+            
+            var link = linkInput.value.trim();
+            // Converti link di condivisione in link download diretto
+            var fileId = '';
+            
+            // Formato: https://drive.google.com/file/d/FILE_ID/view
+            var match1 = link.match(/\/file\/d\/([^\/]+)/);
+            // Formato: https://drive.google.com/open?id=FILE_ID
+            var match2 = link.match(/[?&]id=([^&]+)/);
+            
+            if (match1) fileId = match1[1];
+            else if (match2) fileId = match2[1];
+            else {
+                alert('❌ Link non valido. Usa un link di condivisione Google Drive.');
+                return;
+            }
+            
+            var downloadUrl = 'https://drive.google.com/uc?export=download&id=' + fileId;
+            
+            // Scarica e importa
+            fetch(downloadUrl)
+            .then(function(res) {
+                if (!res.ok) throw new Error('File non accessibile - verifica che sia pubblico o condiviso');
+                return res.arrayBuffer();
+            })
+            .then(function(buffer) {
+                var wb = XLSX.read(buffer, { type: 'array' });
+                var ws = wb.Sheets[wb.SheetNames[0]];
+                var rows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
+                
+                // Importa in base al tipo (cv_ = report fibre, ca_ = cavi attestati)
+                if (tbodyId.startsWith('cv_')) {
+                    importaReportFibre(tbodyId, rows);
+                } else if (tbodyId.startsWith('ca_')) {
+                    importaCaviAttestati(tbodyId, rows);
+                }
+            })
+            .catch(function(err) {
+                alert('❌ Errore import Drive: ' + err.message);
+            });
+        }
+        
+        function importaReportFibre(tbodyId, rows) {
+            var tbody = document.getElementById(tbodyId);
+            if (!tbody) return;
+            tbody.innerHTML = '';
+            var start = (rows[0] && typeof rows[0][0] === 'string' && isNaN(rows[0][0])) ? 1 : 0;
+            var tblId = 'tbl_' + tbodyId.replace('cv_','');
+            var tbl = document.getElementById(tblId);
+            if (tbl) tbl.style.display = '';
+            
+            var count = 0;
+            rows.slice(start).forEach(function(row) {
+                if (!row[0] && !row[1] && !row[2] && !row[3]) return;
+                var tr = document.createElement('tr');
+                tr.innerHTML =
+                    '<td><input type="text" value="' + String(row[0]||'') + '" style="text-align:center;width:100%;font-size:10px"></td>' +
+                    '<td><input type="text" value="' + String(row[1]||'') + '" style="text-align:center;width:100%;font-size:10px"></td>' +
+                    '<td><input type="text" value="' + String(row[2]||'') + '" style="text-align:center;width:100%;font-size:10px"></td>' +
+                    '<td><input type="text" value="' + String(row[3]||'') + '" style="text-align:center;width:100%;font-size:10px"></td>' +
+                    '<td><input type="text" value="' + String(row[4]||'') + '" style="text-align:center;width:100%;font-size:10px"></td>' +
+                    '<td><input type="text" value="' + String(row[5]||'') + '" style="text-align:center;width:100%;font-size:9px"></td>';
+                tbody.appendChild(tr);
+                count++;
+            });
+            alert('✅ Importate ' + count + ' righe da Drive!');
+        }
+        
+        function importaCaviAttestati(tbodyId, rows) {
+            var tbody = document.getElementById(tbodyId);
+            if (!tbody) return;
+            tbody.innerHTML = '';
+            var start = (rows[0] && typeof rows[0][0] === 'string' && isNaN(rows[0][0])) ? 1 : 0;
+            var tblId = 'ca_tbl_' + tbodyId.replace('ca_','');
+            var tbl = document.getElementById(tblId);
+            if (tbl) tbl.style.display = '';
+            
+            var count = 0;
+            rows.slice(start).forEach(function(row) {
+                if (!row[0] && !row[1] && !row[2]) return;
+                var tr = document.createElement('tr');
+                tr.innerHTML =
+                    '<td><input type="text" value="' + String(row[0]||'') + '" style="text-align:center;width:100%"></td>' +
+                    '<td><input type="text" value="' + String(row[1]||'') + '" style="text-align:center;width:100%"></td>' +
+                    '<td><input type="text" value="' + String(row[2]||'') + '" style="text-align:center;width:100%"></td>' +
+                    '<td><button class="btn-dr" onclick="this.closest(\'tr\').remove()">🗑</button></td>';
+                tbody.appendChild(tr);
+                count++;
+            });
+            alert('✅ Importati ' + count + ' cavi da Drive!');
+        }
+
+        function filtraCavi(tbodyId, testo) {
+            var tbody = document.getElementById(tbodyId);
+            if (!tbody) return;
+            var t = testo.trim().toLowerCase();
+            var righe = tbody.querySelectorAll('tr');
+            righe.forEach(function(tr) {
+                var inp = tr.querySelectorAll('input');
+                // Cerca in tutte le colonne
+                var cavoA = inp[0] ? inp[0].value.toLowerCase() : '';
+                var fibre = inp[1] ? inp[1].value.toLowerCase() : '';
+                var fibra = inp[2] ? inp[2].value.toLowerCase() : '';
+                var cavoB = inp[3] ? inp[3].value.toLowerCase() : '';
+                var stato = inp[4] ? inp[4].value.toLowerCase() : '';
+                var data = inp[5] ? inp[5].value.toLowerCase() : '';
+                
+                if (!t || cavoA.includes(t) || cavoB.includes(t) || fibre.includes(t) || fibra.includes(t) || stato.includes(t) || data.includes(t)) {
+                    tr.style.display = '';
+                } else {
+                    tr.style.display = 'none';
+                }
+            });
+        }
+
+        function caAddRow(tbodyId, data) {
+            var tbody = document.getElementById(tbodyId);
+            if (!tbody) return;
+            // Mostra la tabella se nascosta
+            var tblId = 'ca_tbl_' + tbodyId.replace('ca_','');
+            var tbl = document.getElementById(tblId);
+            if (tbl) tbl.style.display = '';
+            
+            var tr = document.createElement('tr');
+            tr.innerHTML =
+                '<td><input type="text" placeholder="ID" value="' + (data && data.id || '') + '" style="text-align:center;width:100%" onclick="event.stopPropagation()"></td>' +
+                '<td><input type="text" placeholder="Nome cavo" value="' + (data && data.nome || '') + '" style="text-align:center;width:100%" onclick="event.stopPropagation()"></td>' +
+                '<td><input type="text" placeholder="es. 144F" value="' + (data && data.pot || '') + '" style="text-align:center;width:100%" onclick="event.stopPropagation()"></td>' +
+                '<td><button class="btn-dr" onclick="this.closest(\'tr\').remove()">🗑</button></td>';
+            tbody.appendChild(tr);
+        }
+
+
+        // ── EXCEL IMPORT / EXPORT ──────────────────────────────
+        function xlsxImporta(e, tbodyId) {
+            var file = e.target.files[0];
+            if (!file) return;
+            var reader = new FileReader();
+            reader.onload = function(ev) {
+                try {
+                    var wb = XLSX.read(ev.target.result, { type: 'binary' });
+                    var ws = wb.Sheets[wb.SheetNames[0]];
+                    var rows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
+                    var tbody = document.getElementById(tbodyId);
+                    if (!tbody) return;
+                    tbody.innerHTML = '';
+                    var start = 0;
+                    if (rows[0] && typeof rows[0][0] === 'string' && isNaN(rows[0][0])) start = 1;
+                    var tblId = 'tbl_' + tbodyId.replace('cv_','');
+                    var tbl = document.getElementById(tblId);
+                    if (tbl) tbl.style.display = '';
+                    
+                    var count = 0;
+                    rows.slice(start).forEach(function(row) {
+                        // Salta righe vuote
+                        if (!row[0] && !row[1] && !row[2] && !row[3]) return;
+                        
+                        var tr = document.createElement('tr');
+                        tr.innerHTML =
+                            '<td><input type="text" value="' + String(row[0]||'') + '" style="text-align:center;width:100%;font-size:10px"></td>' +
+                            '<td><input type="text" value="' + String(row[1]||'') + '" style="text-align:center;width:100%;font-size:10px"></td>' +
+                            '<td><input type="text" value="' + String(row[2]||'') + '" style="text-align:center;width:100%;font-size:10px"></td>' +
+                            '<td><input type="text" value="' + String(row[3]||'') + '" style="text-align:center;width:100%;font-size:10px"></td>' +
+                            '<td><input type="text" value="' + String(row[4]||'') + '" style="text-align:center;width:100%;font-size:10px"></td>' +
+                            '<td><input type="text" value="' + String(row[5]||'') + '" style="text-align:center;width:100%;font-size:9px"></td>';
+                        tbody.appendChild(tr);
+                        count++;
+                    });
+                    alert('✅ Importate ' + count + ' righe!');
+                } catch(err) {
+                    alert('❌ Errore: ' + err.message);
+                }
+            };
+            reader.readAsBinaryString(file);
+            e.target.value = '';
+        }
+
+        function xlsxExporta(cardId, nomeGiunto) {
+            var cavi = [];
+            // Intestazione
+            cavi.push(['Nome Cavo', 'N° Fibre', 'Fibre Giuntate']);
+            // Dati
+            document.querySelectorAll('#cv_' + cardId + ' tr').forEach(function(tr) {
+                var inp = tr.querySelectorAll('input');
+                if (inp[0]) {
+                    cavi.push([
+                        inp[0].value || '',
+                        inp[1] ? inp[1].value : '',
+                        inp[2] ? inp[2].value : ''
+                    ]);
+                }
+            });
+            // Aggiungi anche note e stato
+            var stato = (document.getElementById('st_' + cardId) || {}).value || '';
+            var note  = (document.getElementById('nt_' + cardId) || {}).value || '';
+            cavi.push([]);
+            cavi.push(['Stato Lavori', stato]);
+            cavi.push(['Note', note]);
+
+            var ws = XLSX.utils.aoa_to_sheet(cavi);
+            // Larghezze colonne
+            ws['!cols'] = [{wch:30},{wch:12},{wch:25},{wch:40}];
+            var wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'Cavi');
+            // Nome file: nome giunto pulito
+            var fname = (nomeGiunto || 'giunto').replace(/[^a-zA-Z0-9_\-]/g, '_') + '.xlsx';
+            XLSX.writeFile(wb, fname);
+        }
+
+
+        // ── PROVINCE ───────────────────────────────────────
+        function toggleProv(prov, btn) {
+            // Deseleziona tutti i tasti provincia
+            document.querySelectorAll('.btn-prov').forEach(function(b) {
+                b.classList.remove('active');
+            });
+            // Nascondi tutti i circuiti
+            document.querySelectorAll('.prov-circuits').forEach(function(el) {
+                el.style.display = 'none';
+            });
+            // Mostra provincia selezionata
+            btn.classList.add('active');
+            var el = document.getElementById('prov-' + prov);
+            if (el) el.style.display = '';
+        }
+
+
+        // ── DOCUMENTI ───────────────────────────────────────
+        function apriDocs() {
+            var p = document.getElementById('docs-panel');
+            p.style.display = p.style.display === 'none' ? 'block' : 'none';
+        }
+        function chiudiDocs() {
+            document.getElementById('docs-panel').style.display = 'none';
+        }
+
+        function cercaDrive() {
+            var q = document.getElementById('driveSearch').value.trim();
+            if (!q) { apriDriveRoot(); return; }
+            var url = 'https://drive.google.com/drive/search?q=' + encodeURIComponent(q);
+            window.open(url, '_blank');
+        }
+
+        function cercaDriveTipo(tipo) {
+            var tipi = {
+                'pdf':   'mimeType=application/pdf',
+                'word':  'mimeType=application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                'excel': 'mimeType=application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+            };
+            var q = document.getElementById('driveSearch').value.trim();
+            var query = q ? q + ' type:' + tipo : 'type:' + tipo;
+            var url = 'https://drive.google.com/drive/search?q=' + encodeURIComponent(query);
+            window.open(url, '_blank');
+        }
+
+        function apriDriveRoot() {
+            window.open('https://drive.google.com/drive/my-drive', '_blank');
+        }
+
+        function apriFileLocale(tipo) {
+            var accept = {
+                'pdf':   '.pdf',
+                'word':  '.doc,.docx',
+                'excel': '.xls,.xlsx',
+                'tutti': '.pdf,.doc,.docx,.xls,.xlsx'
+            };
+            var input = document.createElement('input');
+            input.type = 'file';
+            input.accept = accept[tipo] || '*';
+            input.onchange = function(e) {
+                var file = e.target.files[0];
+                if (!file) return;
+                var prev = document.getElementById('file-locale-preview');
+                var url = URL.createObjectURL(file);
+                prev.innerHTML = '<div style="background:white;border:1.5px solid #e2e6f0;border-radius:8px;padding:8px;font-size:12px;">'
+                    + '<b>📄 ' + file.name + '</b><br>'
+                    + '<span style="color:#aaa;font-size:11px;">' + (file.size/1024).toFixed(1) + ' KB</span>&nbsp;'
+                    + '<a href="' + url + '" target="_blank" style="color:#667eea;font-weight:700;">Apri ↗</a>'
+                    + '</div>';
+            };
+            input.click();
+        }
+
+    </script>
+</body>
+</html>
